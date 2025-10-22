@@ -1,0 +1,37 @@
+[versions]
+kotlin = "1.9.0"
+androidGradlePlugin = "7.4.2"
+androidCompileSdk = "34"
+androidMinSdk = "26"
+bcprovJdk15on = "1.70"
+zxingCore = "3.5.1"
+zxingJavase = "3.5.1"
+commonsCodec = "1.15"
+jbcrypt = "0.4"
+bcryptAndroid = "0.10.2"
+jacksonDatabind = "2.14.2"
+jacksonKotlin = "2.14.2"
+kotlinxSerialization = "1.5.1"
+kotlinxDatetime = "0.4.0"
+androidSecurityCrypto = "1.1.0-alpha06"
+vanniktech-publish = "0.25.3"
+
+[libraries]
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+bcprov-jdk15on = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bcprovJdk15on" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxingCore" }
+zxing-javase = { module = "com.google.zxing:javase", version.ref = "zxingJavase" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
+jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
+jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonKotlin" }
+android-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidSecurityCrypto" }
+bcrypt-android = { module = "at.favre.lib:bcrypt", version.ref = "bcryptAndroid" }
+
+[plugins]
+androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
