@@ -1020,6 +1020,7 @@ class TotpManager {
         return array
     }
 }
+```
 
 ## Struktur Proyek
 
