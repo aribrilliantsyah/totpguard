@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -14,6 +15,9 @@ kotlin {
     jvmToolchain(11) // Set Java 11 for all targets
     
     jvm {
+        mavenPublication {
+            artifactId = "totpguard-jvm"
+        }
         compilations.all {
             kotlinOptions.jvmTarget = "11"
         }
@@ -97,6 +101,12 @@ kotlin {
 
 // Local development repository
 publishing {
+    publications.withType<MavenPublication> {
+        // Set artifactId untuk metadata publication
+        if (artifactId == "library") {
+            artifactId = "totpguard"
+        }
+    }
     repositories {
         maven {
             name = "DevRepo"

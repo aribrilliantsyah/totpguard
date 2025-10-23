@@ -63,60 +63,109 @@ TOTP-GUARD adalah library Kotlin Multiplatform (KMP) untuk autentikasi TOTP (Tim
 
 ## Instalasi
 
-### Build dan Integrasi Lokal (Untuk Development)
+### 🚀 Quick Start - Penggunaan Lokal (Recommended untuk Development)
 
-Jika Anda ingin menggunakan library ini secara lokal tanpa publish ke Maven Central, ada dua cara:
+Ikuti langkah-langkah berikut untuk menggunakan library ini secara lokal tanpa perlu publish ke Maven Central:
 
-#### Cara 1: Publish ke Maven Local (Recommended)
+#### Langkah 1: Clone dan Build Library
 
-1. **Clone dan build library:**
-   ```bash
-   git clone https://github.com/aribrilliantsyah/totpguard.git
-   cd totpguard/kotlin-totp-lib
-   ```
+```bash
+# Clone repository
+git clone https://github.com/aribrilliantsyah/totpguard.git
+cd totpguard/kotlin-totp-lib
 
-2. **Publish ke Maven Local (non-aktifkan signing untuk development):**
-   ```bash
-   ./gradlew :library:publishToMavenLocal -PRELEASE_SIGNING_ENABLED=false
-   ```
-   
-   Atau buat file `gradle.properties` lokal (jangan di-commit) dan tambahkan:
-   ```properties
-   RELEASE_SIGNING_ENABLED=false
-   ```
-   
-   Lalu jalankan:
-   ```bash
-   ./gradlew :library:publishToMavenLocal
-   ```
+# Build library (pastikan berhasil)
+./gradlew clean build
+```
 
-3. **Gunakan di project Anda:**
-   
-   Di `build.gradle.kts` atau `settings.gradle.kts` project Anda, tambahkan `mavenLocal()`:
-   
-   ```kotlin
-   repositories {
-       mavenLocal()  // Tambahkan ini di baris pertama
-       mavenCentral()
-       google()
-   }
-   
-   dependencies {
-       // Untuk JVM target
-       implementation("io.github.aribrilliantsyah:library-jvm:0.0.1-beta")
-       
-       // Atau untuk Kotlin Multiplatform
-       implementation("io.github.aribrilliantsyah:library:0.0.1-beta")
-   }
-   ```
+#### Langkah 2: Publish ke Maven Local
 
-#### Cara 2: Composite Build (Untuk Development Aktif)
+```bash
+# Publish ke ~/.m2/repository (Maven Local)
+./gradlew :library:publishToMavenLocal -PRELEASE_SIGNING_ENABLED=false
+```
 
-Jika Anda sedang aktif mengembangkan library dan aplikasi secara bersamaan:
+**Verifikasi hasil publish:**
+```bash
+ls ~/.m2/repository/io/github/aribrilliantsyah/totpguard-jvm/0.0.1-beta/
+```
+
+Harus ada file:
+- `totpguard-jvm-0.0.1-beta.jar`
+- `totpguard-jvm-0.0.1-beta.pom`
+- `totpguard-jvm-0.0.1-beta.module`
+
+#### Langkah 3: Gunakan di Project Anda
+
+**Untuk project Gradle (Kotlin DSL):**
+
+1. Tambahkan `mavenLocal()` di file `build.gradle.kts` atau `settings.gradle.kts`:
+
+```kotlin
+repositories {
+    mavenLocal()  // 👈 Tambahkan ini di baris pertama
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    implementation("io.github.aribrilliantsyah:totpguard-jvm:0.0.1-beta")
+}
+```
+
+2. Sync/reload project Anda
+3. Selesai! Library siap digunakan
+
+**Untuk project Maven (pom.xml):**
+
+```xml
+<project>
+    <repositories>
+        <repository>
+            <id>mavenLocal</id>
+            <url>file://${user.home}/.m2/repository</url>
+        </repository>
+    </repositories>
+    
+    <dependencies>
+        <dependency>
+            <groupId>io.github.aribrilliantsyah</groupId>
+            <artifactId>totpguard-jvm</artifactId>
+            <version>0.0.1-beta</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+**Test menggunakan library:**
+
+```kotlin
+import io.github.aribrilliantsyah.totpguard.TotpGuard
+
+fun main() {
+    val secret = TotpGuard.generateTotpSecret()
+    val code = TotpGuard.generateTotpCode(secret)
+    println("TOTP Code: $code")
+}
+```
+
+---
+
+### 📦 Metode Instalasi Alternatif
+
+#### Metode 1: Maven Local (Recommended - Sudah dijelaskan di atas)
+
+Cocok untuk: Development dan testing library secara lokal
+
+#### Metode 2: Composite Build (Untuk Development Aktif)
+
+Cocok untuk: Ketika Anda ingin mengembangkan library dan aplikasi secara bersamaan
+
+**Setup:**
 
 1. **Clone library di folder terpisah:**
    ```bash
-   # Misalnya struktur folder:
+   # Struktur folder:
    # ~/projects/my-app/          (aplikasi Anda)
    # ~/projects/totpguard/       (library ini)
    ```
@@ -125,7 +174,7 @@ Jika Anda sedang aktif mengembangkan library dan aplikasi secara bersamaan:
    ```kotlin
    includeBuild("../totpguard/kotlin-totp-lib") {
        dependencySubstitution {
-           substitute(module("io.github.aribrilliantsyah:library-jvm"))
+           substitute(module("io.github.aribrilliantsyah:totpguard-jvm"))
                .using(project(":library"))
        }
    }
@@ -134,15 +183,17 @@ Jika Anda sedang aktif mengembangkan library dan aplikasi secara bersamaan:
 3. **Tambahkan dependency seperti biasa:**
    ```kotlin
    dependencies {
-       implementation("io.github.aribrilliantsyah:library-jvm:0.0.1-beta")
+       implementation("io.github.aribrilliantsyah:totpguard-jvm:0.0.1-beta")
    }
    ```
 
-4. **Setiap kali Anda build aplikasi, library akan otomatis di-compile ulang.**
+**Keuntungan:** Setiap perubahan di library langsung terdeteksi tanpa perlu publish ulang
 
-#### Cara 3: Build ke Local Repository (dev-repo)
+#### Metode 3: Local Repository (dev-repo)
 
-Library ini sudah dikonfigurasi dengan local repository untuk development:
+Cocok untuk: Sharing library antar tim tanpa Maven Central
+
+**Setup:**
 
 1. **Build dan publish ke dev-repo:**
    ```bash
@@ -162,33 +213,68 @@ Library ini sudah dikonfigurasi dengan local repository untuk development:
    }
    
    dependencies {
-       implementation("io.github.aribrilliantsyah:library-jvm:0.0.1-beta")
+       implementation("io.github.aribrilliantsyah:totpguard-jvm:0.0.1-beta")
    }
    ```
 
-#### Troubleshooting Build Lokal
+---
 
-**Problem: Task signing gagal**
+### 🔧 Troubleshooting
+
+#### Problem: "Cannot find io.github.aribrilliantsyah:totpguard-jvm"
+
+**Solusi:**
+1. Pastikan sudah menjalankan `./gradlew :library:publishToMavenLocal -PRELEASE_SIGNING_ENABLED=false`
+2. Pastikan `mavenLocal()` ada di repository list dan di **baris pertama**
+3. Cek apakah file ada di `~/.m2/repository/io/github/aribrilliantsyah/totpguard-jvm/0.0.1-beta/`
+
+#### Problem: Task signing gagal
+
 ```
 Cannot perform signing task because it has no configured signatory
 ```
 
 **Solusi:**
-- Tambahkan flag `-PRELEASE_SIGNING_ENABLED=false` saat publish, atau
-- Set `RELEASE_SIGNING_ENABLED=false` di `gradle.properties` lokal
+- Tambahkan flag `-PRELEASE_SIGNING_ENABLED=false` saat publish
 
-**Problem: Versi tidak match**
-- Pastikan versi di `build.gradle.kts` library sama dengan yang Anda gunakan di dependency
-- Default version: `0.0.1-beta` (bisa dilihat di `library/build.gradle.kts`)
+#### Problem: Versi tidak match
 
-**Problem: Changes tidak terpick**
-- Untuk Maven Local: Jalankan ulang `publishToMavenLocal` setelah perubahan
-- Untuk Composite Build: Gradle akan otomatis detect perubahan
-- Hapus cache: `./gradlew clean` di kedua project jika perlu
+**Solusi:**
+- Cek versi di `library/build.gradle.kts` (default: `0.0.1-beta`)
+- Pastikan versi di dependency sama dengan versi yang dipublish
+
+#### Problem: Changes tidak terpick setelah update library
+
+**Solusi untuk Maven Local:**
+```bash
+# Re-publish library
+./gradlew clean :library:publishToMavenLocal -PRELEASE_SIGNING_ENABLED=false
+
+# Clear cache di project Anda
+./gradlew clean --refresh-dependencies
+```
+
+**Solusi untuk Composite Build:**
+- Gradle akan otomatis detect perubahan, cukup rebuild project
+
+#### Problem: Error di Maven - "Missing artifact"
+
+**Solusi:**
+1. Verifikasi artifactId: gunakan `totpguard-jvm` (BUKAN `totp-guard`)
+2. Verifikasi repository `mavenLocal` sudah ditambahkan
+3. Clean dan reload Maven:
+   ```bash
+   mvn clean install
+   # Atau di IDE: Maven > Reload Project
+   ```
 
 ---
 
-### Instalasi dari Maven Central (Production)
+### 🌐 Instalasi dari Maven Central (Production - Coming Soon)
+
+⚠️ **Library ini belum tersedia di Maven Central.** Gunakan metode lokal di atas untuk saat ini.
+
+Setelah dipublish ke Maven Central, Anda bisa menggunakannya seperti ini:
 
 #### Gradle (Kotlin DSL)
 
@@ -198,56 +284,18 @@ repositories {
 }
 
 dependencies {
-    // Untuk proyek Kotlin Multiplatform
-    implementation("io.github.aribrilliantsyah:totp-guard:0.0.1-beta")
+    // Untuk proyek JVM
+    implementation("io.github.aribrilliantsyah:totp-guard-jvm:0.0.1-beta")
     
-    // Atau untuk proyek JVM/Android saja
-    implementation("io.github.aribrilliantsyah:totp-guard-jvm:0.0.1-beta") 
-    implementation("io.github.aribrilliantsyah:totp-guard-android:0.0.1-beta")
+    // Atau untuk Kotlin Multiplatform
+    implementation("io.github.aribrilliantsyah:totp-guard:0.0.1-beta")
 }
 ```
 
 #### Maven (pom.xml)
 
-**Untuk Development Lokal:**
-
-Jika Anda sudah publish ke Maven Local, tambahkan repository `mavenLocal` dan dependency:
-
 ```xml
 <project>
-    <!-- ... -->
-    
-    <repositories>
-        <repository>
-            <id>mavenLocal</id>
-            <url>file://${user.home}/.m2/repository</url>
-        </repository>
-    </repositories>
-    
-    <dependencies>
-        <!-- Untuk JVM target -->
-        <dependency>
-            <groupId>io.github.aribrilliantsyah</groupId>
-            <artifactId>library-jvm</artifactId>
-            <version>0.0.1-beta</version>
-        </dependency>
-        
-        <!-- ATAU untuk Kotlin Multiplatform metadata -->
-        <dependency>
-            <groupId>io.github.aribrilliantsyah</groupId>
-            <artifactId>library</artifactId>
-            <version>0.0.1-beta</version>
-        </dependency>
-    </dependencies>
-</project>
-```
-
-**Untuk Production (dari Maven Central):**
-
-```xml
-<project>
-    <!-- ... -->
-    
     <repositories>
         <repository>
             <id>mavenCentral</id>
@@ -258,17 +306,16 @@ Jika Anda sudah publish ke Maven Local, tambahkan repository `mavenLocal` dan de
     <dependencies>
         <dependency>
             <groupId>io.github.aribrilliantsyah</groupId>
-            <artifactId>totp-guard</artifactId>
+            <artifactId>totp-guard-jvm</artifactId>
             <version>0.0.1-beta</version>
         </dependency>
     </dependencies>
 </project>
 ```
 
-**Catatan Penting untuk Maven:**
-- Untuk development lokal, gunakan `library-jvm` sebagai `artifactId`
-- Untuk production dari Maven Central, gunakan `totp-guard` sebagai `artifactId`
-- Pastikan Anda sudah menjalankan `./gradlew :library:publishToMavenLocal` untuk development lokal
+**Catatan Penting:**
+- 🏠 **Development Lokal:** gunakan artifactId `totpguard-jvm`
+- 🌐 **Maven Central (Production):** gunakan artifactId `totp-guard-jvm`
 
 ## Panduan Penggunaan
 
@@ -1257,8 +1304,8 @@ plugins {
 }
 ```
 
-### 2. Library Module (`library/build.gradle.kts`)
-File ini berada di folder `library/` dan berfungsi untuk:
+### 2. Library Module (`totpguard/build.gradle.kts`)
+File ini berada di folder `totpguard/` dan berfungsi untuk:
 - Konfigurasi lengkap library multiplatform
 - Menentukan target platform (JVM, Android, iOS)
 - Mengatur dependencies untuk setiap platform
@@ -1280,7 +1327,7 @@ kotlin {
 **Catatan Penting:**
 - Kedua file ini diperlukan dan memiliki fungsi berbeda
 - File root (`build.gradle.kts`) = konfigurasi proyek
-- File library (`library/build.gradle.kts`) = konfigurasi module library yang akan dipublish
+- File library (`totpguard/build.gradle.kts`) = konfigurasi module library yang akan dipublish
 - Jangan menghapus salah satunya karena keduanya saling melengkapi
 
 ## API Reference
