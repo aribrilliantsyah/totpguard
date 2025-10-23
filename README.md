@@ -8,6 +8,38 @@ TOTP-GUARD adalah library Kotlin Multiplatform (KMP) untuk autentikasi TOTP (Tim
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Java](https://img.shields.io/badge/Java-11-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html)
 
+## 📑 Daftar Isi
+
+- [Fitur Utama](#fitur-utama)
+- [Instalasi](#instalasi)
+  - [Build dan Integrasi Lokal (Development)](#build-dan-integrasi-lokal-untuk-development)
+    - [Cara 1: Publish ke Maven Local](#cara-1-publish-ke-maven-local-recommended)
+    - [Cara 2: Composite Build](#cara-2-composite-build-untuk-development-aktif)
+    - [Cara 3: Build ke Local Repository](#cara-3-build-ke-local-repository-dev-repo)
+    - [Troubleshooting Build Lokal](#troubleshooting-build-lokal)
+  - [Instalasi dari Maven Central (Production)](#instalasi-dari-maven-central-production)
+- [Panduan Penggunaan](#panduan-penggunaan)
+  - [1. Penggunaan di Spring Boot (Java)](#1-penggunaan-di-spring-boot-java)
+  - [2. Penggunaan di Spring Boot (Kotlin)](#2-penggunaan-di-spring-boot-kotlin)
+  - [3. Penggunaan di Java Biasa](#3-penggunaan-di-java-biasa-tanpa-framework)
+  - [4. Serialisasi dan Penyimpanan Data](#4-serialisasi-dan-penyimpanan-data)
+  - [5. Penggunaan di Android](#5-penggunaan-di-android)
+  - [6. Penggunaan di iOS](#6-penggunaan-di-ios)
+- [Struktur Proyek](#struktur-proyek)
+- [API Reference](#api-reference)
+  - [🔐 Fungsi TOTP](#-fungsi-totp-time-based-one-time-password)
+  - [🔒 Fungsi Enkripsi](#-fungsi-enkripsi)
+  - [📱 Fungsi QR Code](#-fungsi-qr-code)
+  - [🔑 Fungsi Backup Codes](#-fungsi-backup-codes)
+  - [📊 Model Classes](#-model-classes)
+  - [🔄 Alur Penggunaan Umum](#-alur-penggunaan-umum)
+  - [⚙️ Best Practices](#️-best-practices)
+- [Panduan Keamanan](#panduan-keamanan)
+- [Proses Kontribusi](#proses-kontribusi)
+- [Lisensi](#lisensi)
+
+---
+
 ## Fitur Utama
 
 - **TOTP (Time-based One-Time Password)**
@@ -31,20 +63,151 @@ TOTP-GUARD adalah library Kotlin Multiplatform (KMP) untuk autentikasi TOTP (Tim
 
 ## Instalasi
 
-### Gradle (Kotlin DSL)
+### Build dan Integrasi Lokal (Untuk Development)
+
+Jika Anda ingin menggunakan library ini secara lokal tanpa publish ke Maven Central, ada dua cara:
+
+#### Cara 1: Publish ke Maven Local (Recommended)
+
+1. **Clone dan build library:**
+   ```bash
+   git clone https://github.com/aribrilliantsyah/totpguard.git
+   cd totpguard/kotlin-totp-lib
+   ```
+
+2. **Publish ke Maven Local (non-aktifkan signing untuk development):**
+   ```bash
+   ./gradlew :library:publishToMavenLocal -PRELEASE_SIGNING_ENABLED=false
+   ```
+   
+   Atau buat file `gradle.properties` lokal (jangan di-commit) dan tambahkan:
+   ```properties
+   RELEASE_SIGNING_ENABLED=false
+   ```
+   
+   Lalu jalankan:
+   ```bash
+   ./gradlew :library:publishToMavenLocal
+   ```
+
+3. **Gunakan di project Anda:**
+   
+   Di `build.gradle.kts` atau `settings.gradle.kts` project Anda, tambahkan `mavenLocal()`:
+   
+   ```kotlin
+   repositories {
+       mavenLocal()  // Tambahkan ini di baris pertama
+       mavenCentral()
+       google()
+   }
+   
+   dependencies {
+       // Untuk JVM target
+       implementation("io.github.aribrilliantsyah:library-jvm:0.0.1-beta")
+       
+       // Atau untuk Kotlin Multiplatform
+       implementation("io.github.aribrilliantsyah:library:0.0.1-beta")
+   }
+   ```
+
+#### Cara 2: Composite Build (Untuk Development Aktif)
+
+Jika Anda sedang aktif mengembangkan library dan aplikasi secara bersamaan:
+
+1. **Clone library di folder terpisah:**
+   ```bash
+   # Misalnya struktur folder:
+   # ~/projects/my-app/          (aplikasi Anda)
+   # ~/projects/totpguard/       (library ini)
+   ```
+
+2. **Di `settings.gradle.kts` aplikasi Anda, tambahkan:**
+   ```kotlin
+   includeBuild("../totpguard/kotlin-totp-lib") {
+       dependencySubstitution {
+           substitute(module("io.github.aribrilliantsyah:library-jvm"))
+               .using(project(":library"))
+       }
+   }
+   ```
+
+3. **Tambahkan dependency seperti biasa:**
+   ```kotlin
+   dependencies {
+       implementation("io.github.aribrilliantsyah:library-jvm:0.0.1-beta")
+   }
+   ```
+
+4. **Setiap kali Anda build aplikasi, library akan otomatis di-compile ulang.**
+
+#### Cara 3: Build ke Local Repository (dev-repo)
+
+Library ini sudah dikonfigurasi dengan local repository untuk development:
+
+1. **Build dan publish ke dev-repo:**
+   ```bash
+   ./gradlew :library:publish -PRELEASE_SIGNING_ENABLED=false
+   ```
+   
+   Ini akan membuat folder `dev-repo` di root project dengan semua artefak.
+
+2. **Di project Anda, tambahkan repository lokal:**
+   ```kotlin
+   repositories {
+       maven {
+           url = uri("/path/to/totpguard/kotlin-totp-lib/dev-repo")
+       }
+       mavenCentral()
+       google()
+   }
+   
+   dependencies {
+       implementation("io.github.aribrilliantsyah:library-jvm:0.0.1-beta")
+   }
+   ```
+
+#### Troubleshooting Build Lokal
+
+**Problem: Task signing gagal**
+```
+Cannot perform signing task because it has no configured signatory
+```
+
+**Solusi:**
+- Tambahkan flag `-PRELEASE_SIGNING_ENABLED=false` saat publish, atau
+- Set `RELEASE_SIGNING_ENABLED=false` di `gradle.properties` lokal
+
+**Problem: Versi tidak match**
+- Pastikan versi di `build.gradle.kts` library sama dengan yang Anda gunakan di dependency
+- Default version: `0.0.1-beta` (bisa dilihat di `library/build.gradle.kts`)
+
+**Problem: Changes tidak terpick**
+- Untuk Maven Local: Jalankan ulang `publishToMavenLocal` setelah perubahan
+- Untuk Composite Build: Gradle akan otomatis detect perubahan
+- Hapus cache: `./gradlew clean` di kedua project jika perlu
+
+---
+
+### Instalasi dari Maven Central (Production)
+
+#### Gradle (Kotlin DSL)
 
 ```kotlin
-```kotlin
-// Untuk proyek Kotlin Multiplatform
-implementation("io.github.aribrilliantsyah:totp-guard:0.0.1-beta")
+repositories {
+    mavenCentral()
+}
 
-// Atau untuk proyek JVM/Android saja
-implementation("io.github.aribrilliantsyah:totp-guard-jvm:0.0.1-beta") 
-implementation("io.github.aribrilliantsyah:totp-guard-android:0.0.1-beta")
-```
+dependencies {
+    // Untuk proyek Kotlin Multiplatform
+    implementation("io.github.aribrilliantsyah:totp-guard:0.0.1-beta")
+    
+    // Atau untuk proyek JVM/Android saja
+    implementation("io.github.aribrilliantsyah:totp-guard-jvm:0.0.1-beta") 
+    implementation("io.github.aribrilliantsyah:totp-guard-android:0.0.1-beta")
+}
 ```
 
-### Maven
+#### Maven
 
 ```xml
 <dependency>
@@ -1066,6 +1229,572 @@ kotlin {
 - File root (`build.gradle.kts`) = konfigurasi proyek
 - File library (`library/build.gradle.kts`) = konfigurasi module library yang akan dipublish
 - Jangan menghapus salah satunya karena keduanya saling melengkapi
+
+## API Reference
+
+Library TOTP-GUARD menyediakan berbagai fungsi melalui object singleton `TotpGuard`. Berikut adalah dokumentasi lengkap semua fungsi yang tersedia:
+
+### 🔐 Fungsi TOTP (Time-based One-Time Password)
+
+#### 1. `generateTotpSecret()`
+Menghasilkan secret key untuk TOTP yang di-encode dalam Base32.
+
+**Signature:**
+```kotlin
+fun generateTotpSecret(length: Int = 32): String
+```
+
+**Parameter:**
+- `length` (Int, opsional): Panjang secret dalam bytes. Default: `32` bytes (256 bits)
+
+**Return:**
+- `String`: Secret key yang di-encode dalam Base32
+
+**Contoh:**
+```kotlin
+val secret = TotpGuard.generateTotpSecret()
+// Output: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"
+
+val shortSecret = TotpGuard.generateTotpSecret(16)
+// Output secret yang lebih pendek
+```
+
+---
+
+#### 2. `generateTotpCode()`
+Menghasilkan kode TOTP untuk waktu saat ini.
+
+**Signature:**
+```kotlin
+fun generateTotpCode(
+    secret: String,
+    algorithm: TotpAlgorithm = TotpAlgorithm.SHA1,
+    digits: Int = 6,
+    period: Int = 30
+): String
+```
+
+**Parameter:**
+- `secret` (String, required): Secret key dalam format Base32
+- `algorithm` (TotpAlgorithm, opsional): Algoritma hash yang digunakan. Default: `TotpAlgorithm.SHA1`
+  - `TotpAlgorithm.SHA1` - SHA-1 (paling umum)
+  - `TotpAlgorithm.SHA256` - SHA-256 (lebih aman)
+  - `TotpAlgorithm.SHA512` - SHA-512 (paling aman)
+- `digits` (Int, opsional): Jumlah digit dalam kode. Default: `6` (range: 6-8)
+- `period` (Int, opsional): Periode waktu validitas kode dalam detik. Default: `30`
+
+**Return:**
+- `String`: Kode TOTP (contoh: "123456")
+
+**Contoh:**
+```kotlin
+val code = TotpGuard.generateTotpCode(secret)
+// Output: "123456"
+
+val code8digit = TotpGuard.generateTotpCode(
+    secret = secret,
+    algorithm = TotpAlgorithm.SHA256,
+    digits = 8,
+    period = 60
+)
+// Output: "12345678"
+```
+
+---
+
+#### 3. `verifyTotpCode()`
+Memverifikasi kode TOTP yang dimasukkan user.
+
+**Signature:**
+```kotlin
+fun verifyTotpCode(
+    secret: String,
+    code: String,
+    timeWindow: Int = 1,
+    algorithm: TotpAlgorithm = TotpAlgorithm.SHA1,
+    digits: Int = 6,
+    period: Int = 30
+): TotpVerificationResult
+```
+
+**Parameter:**
+- `secret` (String, required): Secret key dalam format Base32
+- `code` (String, required): Kode TOTP yang akan diverifikasi
+- `timeWindow` (Int, opsional): Jumlah periode waktu yang dicek sebelum dan sesudah periode saat ini. Default: `1`
+  - `0` = Hanya cek waktu saat ini (strict)
+  - `1` = Cek 30 detik sebelum dan sesudah (toleran)
+  - `2` = Cek 60 detik sebelum dan sesudah (sangat toleran)
+- `algorithm` (TotpAlgorithm, opsional): Algoritma hash. Default: `TotpAlgorithm.SHA1`
+- `digits` (Int, opsional): Jumlah digit. Default: `6`
+- `period` (Int, opsional): Periode validitas. Default: `30` detik
+
+**Return:**
+- `TotpVerificationResult`: Object dengan properties:
+  - `isValid` (Boolean): Apakah kode valid
+  - `timeOffset` (Int): Offset waktu jika kode valid di periode berbeda
+
+**Contoh:**
+```kotlin
+val result = TotpGuard.verifyTotpCode(secret, userInputCode)
+if (result.isValid) {
+    println("Kode valid!")
+} else {
+    println("Kode tidak valid!")
+}
+
+// Dengan toleransi lebih ketat
+val strictResult = TotpGuard.verifyTotpCode(
+    secret = secret,
+    code = userInputCode,
+    timeWindow = 0  // Hanya terima kode untuk waktu saat ini
+)
+```
+
+---
+
+#### 4. `getRemainingSeconds()`
+Mendapatkan sisa waktu sebelum kode TOTP saat ini expired.
+
+**Signature:**
+```kotlin
+fun getRemainingSeconds(period: Int = 30): Int
+```
+
+**Parameter:**
+- `period` (Int, opsional): Periode validitas kode. Default: `30` detik
+
+**Return:**
+- `Int`: Jumlah detik tersisa (0-29 untuk period 30 detik)
+
+**Contoh:**
+```kotlin
+val remaining = TotpGuard.getRemainingSeconds()
+println("Kode akan expired dalam $remaining detik")
+
+// Untuk period custom
+val remaining60 = TotpGuard.getRemainingSeconds(60)
+```
+
+---
+
+#### 5. `generateOtpAuthUri()`
+Menghasilkan URI `otpauth://` untuk setup TOTP di aplikasi authenticator.
+
+**Signature:**
+```kotlin
+fun generateOtpAuthUri(
+    secret: String,
+    accountName: String,
+    issuer: String,
+    algorithm: TotpAlgorithm = TotpAlgorithm.SHA1,
+    digits: Int = 6,
+    period: Int = 30
+): String
+```
+
+**Parameter:**
+- `secret` (String, required): Secret key dalam format Base32
+- `accountName` (String, required): Nama akun (biasanya email atau username)
+- `issuer` (String, required): Nama aplikasi/perusahaan
+- `algorithm` (TotpAlgorithm, opsional): Algoritma hash. Default: `TotpAlgorithm.SHA1`
+- `digits` (Int, opsional): Jumlah digit. Default: `6`
+- `period` (Int, opsional): Periode validitas. Default: `30` detik
+
+**Return:**
+- `String`: URI otpauth (contoh: `otpauth://totp/MyApp:user@example.com?secret=...`)
+
+**Contoh:**
+```kotlin
+val uri = TotpGuard.generateOtpAuthUri(
+    secret = secret,
+    accountName = "user@example.com",
+    issuer = "MyApp"
+)
+// Output: "otpauth://totp/MyApp:user@example.com?secret=ABC...&issuer=MyApp&algorithm=SHA1&digits=6&period=30"
+```
+
+---
+
+### 🔒 Fungsi Enkripsi
+
+#### 6. `generateEncryptionKey()`
+Menghasilkan kunci enkripsi AES-256 yang aman.
+
+**Signature:**
+```kotlin
+fun generateEncryptionKey(): ByteArray
+```
+
+**Parameter:**
+- Tidak ada
+
+**Return:**
+- `ByteArray`: Kunci enkripsi 32 bytes (256 bits)
+
+**Contoh:**
+```kotlin
+val encryptionKey = TotpGuard.generateEncryptionKey()
+// Simpan key ini dengan aman!
+val keyBase64 = Base64.getEncoder().encodeToString(encryptionKey)
+```
+
+---
+
+#### 7. `encrypt()`
+Mengenkripsi data menggunakan AES-256-GCM.
+
+**Signature:**
+```kotlin
+fun encrypt(plaintext: String, key: ByteArray): EncryptionResult
+```
+
+**Parameter:**
+- `plaintext` (String, required): Data yang akan dienkripsi
+- `key` (ByteArray, required): Kunci enkripsi 32 bytes
+
+**Return:**
+- `EncryptionResult`: Object dengan properties:
+  - `ciphertext` (ByteArray): Data terenkripsi
+  - `iv` (ByteArray): Initialization Vector
+  - `authTag` (ByteArray): Authentication Tag untuk GCM
+
+**Contoh:**
+```kotlin
+val encrypted = TotpGuard.encrypt(secret, encryptionKey)
+// Simpan encrypted.ciphertext, encrypted.iv, dan encrypted.authTag
+```
+
+---
+
+#### 8. `decrypt()`
+Mendekripsi data yang telah dienkripsi.
+
+**Signature:**
+```kotlin
+fun decrypt(encryptedData: EncryptionResult, key: ByteArray): String
+```
+
+**Parameter:**
+- `encryptedData` (EncryptionResult, required): Data terenkripsi
+- `key` (ByteArray, required): Kunci enkripsi yang sama dengan yang digunakan saat encrypt
+
+**Return:**
+- `String`: Data yang sudah didekripsi
+
+**Contoh:**
+```kotlin
+val decrypted = TotpGuard.decrypt(encrypted, encryptionKey)
+// decrypted == secret (plaintext asli)
+```
+
+---
+
+#### 9. `rotateKey()`
+Mengganti kunci enkripsi dengan mengenkripsi ulang data.
+
+**Signature:**
+```kotlin
+fun rotateKey(
+    encryptedData: EncryptionResult,
+    oldKey: ByteArray,
+    newKey: ByteArray
+): EncryptionResult
+```
+
+**Parameter:**
+- `encryptedData` (EncryptionResult, required): Data yang dienkripsi dengan kunci lama
+- `oldKey` (ByteArray, required): Kunci enkripsi lama
+- `newKey` (ByteArray, required): Kunci enkripsi baru
+
+**Return:**
+- `EncryptionResult`: Data yang dienkripsi dengan kunci baru
+
+**Contoh:**
+```kotlin
+val newKey = TotpGuard.generateEncryptionKey()
+val reencrypted = TotpGuard.rotateKey(encrypted, oldKey, newKey)
+// Data sekarang terenkripsi dengan newKey
+```
+
+---
+
+### 📱 Fungsi QR Code
+
+#### 10. `generateQrCodePng()`
+Menghasilkan QR code dalam format PNG bytes.
+
+**Signature:**
+```kotlin
+fun generateQrCodePng(uri: String, size: Int = 300): ByteArray
+```
+
+**Parameter:**
+- `uri` (String, required): URI yang akan di-encode (biasanya otpauth URI)
+- `size` (Int, opsional): Ukuran QR code dalam pixels. Default: `300`
+
+**Return:**
+- `ByteArray`: Image PNG dalam bentuk bytes
+
+**Contoh:**
+```kotlin
+val uri = TotpGuard.generateOtpAuthUri(secret, "user@example.com", "MyApp")
+val qrBytes = TotpGuard.generateQrCodePng(uri, 400)
+// Simpan ke file atau tampilkan
+Files.write(Paths.get("qrcode.png"), qrBytes)
+```
+
+---
+
+#### 11. `generateQrCodeBase64()`
+Menghasilkan QR code dalam format Base64 string.
+
+**Signature:**
+```kotlin
+fun generateQrCodeBase64(uri: String, size: Int = 300): String
+```
+
+**Parameter:**
+- `uri` (String, required): URI yang akan di-encode
+- `size` (Int, opsional): Ukuran QR code dalam pixels. Default: `300`
+
+**Return:**
+- `String`: Image PNG yang di-encode dalam Base64
+
+**Contoh:**
+```kotlin
+val qrBase64 = TotpGuard.generateQrCodeBase64(uri)
+// Kirim ke frontend untuk ditampilkan
+// <img src="data:image/png;base64,${qrBase64}" />
+```
+
+---
+
+### 🔑 Fungsi Backup Codes
+
+#### 12. `generateBackupCodes()`
+Menghasilkan kode cadangan untuk recovery.
+
+**Signature:**
+```kotlin
+fun generateBackupCodes(count: Int = 10, length: Int = 8): BackupCodesResult
+```
+
+**Parameter:**
+- `count` (Int, opsional): Jumlah kode cadangan. Default: `10`
+- `length` (Int, opsional): Panjang setiap kode. Default: `8` karakter
+
+**Return:**
+- `BackupCodesResult`: Object dengan properties:
+  - `plainCodes` (List<String>): Kode dalam plaintext
+  - `hashedCodes` (List<String>): Kode yang di-hash (untuk disimpan)
+  - `formattedCodes` (List<String>): Kode yang diformat untuk ditampilkan
+
+**Contoh:**
+```kotlin
+val backupCodes = TotpGuard.generateBackupCodes(10, 8)
+
+// Tampilkan ke user (hanya sekali!)
+backupCodes.formattedCodes.forEach { println(it) }
+// Output:
+// ABCD-EFGH
+// IJKL-MNOP
+// ...
+
+// Simpan ke database
+saveToDatabase(backupCodes.hashedCodes)
+```
+
+---
+
+#### 13. `verifyBackupCode()`
+Memverifikasi kode cadangan yang dimasukkan user.
+
+**Signature:**
+```kotlin
+fun verifyBackupCode(
+    code: String,
+    hashedCodes: List<String>
+): BackupCodeVerificationResult
+```
+
+**Parameter:**
+- `code` (String, required): Kode yang dimasukkan user
+- `hashedCodes` (List<String>, required): Daftar kode yang di-hash dari database
+
+**Return:**
+- `BackupCodeVerificationResult`: Object dengan properties:
+  - `isValid` (Boolean): Apakah kode valid
+  - `codeIndex` (Int?): Index kode yang cocok (untuk dihapus setelah digunakan)
+
+**Contoh:**
+```kotlin
+val result = TotpGuard.verifyBackupCode(userInput, hashedCodes)
+if (result.isValid) {
+    // Kode valid, hapus dari database
+    val usedCodeIndex = result.codeIndex!!
+    hashedCodes.removeAt(usedCodeIndex)
+    saveToDatabase(hashedCodes)
+}
+```
+
+---
+
+#### 14. `formatBackupCode()`
+Memformat backup code untuk display yang lebih mudah dibaca.
+
+**Signature:**
+```kotlin
+fun formatBackupCode(
+    code: String,
+    groupSize: Int = 4,
+    separator: String = "-"
+): String
+```
+
+**Parameter:**
+- `code` (String, required): Kode yang akan diformat
+- `groupSize` (Int, opsional): Jumlah karakter per grup. Default: `4`
+- `separator` (String, opsional): Pemisah antar grup. Default: `"-"`
+
+**Return:**
+- `String`: Kode yang sudah diformat
+
+**Contoh:**
+```kotlin
+val formatted = TotpGuard.formatBackupCode("ABCDEFGH")
+// Output: "ABCD-EFGH"
+
+val customFormat = TotpGuard.formatBackupCode("ABCDEFGH", 2, " ")
+// Output: "AB CD EF GH"
+```
+
+---
+
+### 📊 Model Classes
+
+#### TotpAlgorithm (Enum)
+```kotlin
+enum class TotpAlgorithm {
+    SHA1,    // Paling umum, kompatibel dengan semua authenticator
+    SHA256,  // Lebih aman, tidak semua authenticator support
+    SHA512   // Paling aman, support terbatas
+}
+```
+
+#### TotpVerificationResult (Data Class)
+```kotlin
+data class TotpVerificationResult(
+    val isValid: Boolean,      // Apakah kode valid
+    val timeOffset: Int = 0    // Offset waktu (dalam period)
+)
+```
+
+#### EncryptionResult (Data Class)
+```kotlin
+data class EncryptionResult(
+    val ciphertext: ByteArray,  // Data terenkripsi
+    val iv: ByteArray,          // Initialization Vector (12 bytes)
+    val authTag: ByteArray      // Authentication Tag (16 bytes)
+)
+```
+
+**Helper Functions:**
+```kotlin
+// Konversi ke JSON
+val json = encryptionResult.toJson()
+
+// Konversi dari JSON
+val result = fromJson(jsonString)
+```
+
+#### BackupCodesResult (Data Class)
+```kotlin
+data class BackupCodesResult(
+    val plainCodes: List<String>,       // Kode plaintext (jangan disimpan!)
+    val hashedCodes: List<String>,      // Kode yang di-hash (simpan ini)
+    val formattedCodes: List<String>    // Kode yang diformat untuk display
+)
+```
+
+#### BackupCodeVerificationResult (Data Class)
+```kotlin
+data class BackupCodeVerificationResult(
+    val isValid: Boolean,    // Apakah kode valid
+    val codeIndex: Int?      // Index kode yang cocok (null jika tidak valid)
+)
+```
+
+---
+
+### 🔄 Alur Penggunaan Umum
+
+#### Alur Setup TOTP Baru
+```
+1. generateTotpSecret()           → Buat secret baru
+2. generateEncryptionKey()        → Buat encryption key
+3. encrypt(secret, key)           → Enkripsi secret
+4. generateBackupCodes()          → Buat backup codes
+5. generateOtpAuthUri()           → Buat URI untuk QR code
+6. generateQrCodeBase64(uri)      → Generate QR code
+7. Simpan encrypted secret dan hashed backup codes ke database
+8. Tampilkan QR code dan backup codes ke user (sekali saja!)
+```
+
+#### Alur Verifikasi TOTP
+```
+1. Load encrypted secret dari database
+2. decrypt(encrypted, key)        → Dekripsi secret
+3. verifyTotpCode(secret, code)   → Verifikasi kode user
+4. Jika valid, izinkan akses
+```
+
+#### Alur Backup Code Recovery
+```
+1. Load hashed backup codes dari database
+2. verifyBackupCode(code, hashes) → Verifikasi kode user
+3. Jika valid:
+   - Hapus kode yang sudah digunakan
+   - Update database
+   - Izinkan akses
+```
+
+#### Alur Rotasi Encryption Key
+```
+1. generateEncryptionKey()        → Buat key baru
+2. Load semua encrypted data
+3. rotateKey(data, oldKey, newKey) → Re-encrypt dengan key baru
+4. Update database dengan encrypted data baru
+5. Simpan newKey dengan aman
+```
+
+---
+
+### ⚙️ Best Practices
+
+**Secret Generation:**
+- Gunakan panjang minimal 32 bytes untuk keamanan optimal
+- Simpan secret dalam bentuk terenkripsi, jangan plaintext
+
+**Time Window:**
+- Gunakan `timeWindow = 1` untuk balance antara keamanan dan UX
+- `timeWindow = 0` untuk keamanan maksimal (tidak ada toleransi waktu)
+- `timeWindow = 2+` hanya untuk troubleshooting
+
+**Backup Codes:**
+- Generate minimal 10 backup codes
+- Tampilkan ke user hanya sekali saat setup
+- Hapus kode setelah digunakan
+- Jangan izinkan reuse backup code
+
+**Encryption:**
+- Simpan encryption key terpisah dari encrypted data
+- Gunakan key management system atau hardware security module
+- Rotasi key secara berkala (misalnya setiap 90 hari)
+
+**QR Code:**
+- Ukuran 300x300 pixels cukup untuk sebagian besar use case
+- Gunakan Base64 untuk web applications
+- Gunakan PNG bytes untuk mobile apps
 
 ## Panduan Keamanan
 
