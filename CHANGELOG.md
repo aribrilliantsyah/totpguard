@@ -54,10 +54,11 @@ Versi beta pertama dari library TOTP-GUARD.
 
 ## 5. Perubahan pada Build Configuration
 
-- Dependensi tambahan:
-  - Jackson untuk serialisasi/deserialisasi JSON
-  - Dukungan untuk Java 11
 
 ## 6. Kesimpulan
 
+
+## Security fixes
+
+- Bumped Bouncy Castle provider to 1.82 to address several CVEs (CVE-2023-33202, CVE-2024-29857, CVE-2024-30171, CVE-2024-30172). This resolves known issues related to resource exhaustion, infinite loops, and timing leakage.
 API baru memberikan pengalaman developer yang lebih baik, konsistensi yang lebih tinggi, dan fleksibilitas yang lebih besar dalam menggunakan library. Semua fitur utama tetap didukung dengan tambahan detail implementasi yang lebih baik.

@@ -53,7 +53,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(libs.bcprov.jdk15on)
+                implementation(libs.bcprov.jdk15to18)
                 implementation(libs.zxing.core)
                 implementation(libs.zxing.javase)
                 implementation(libs.commons.codec)

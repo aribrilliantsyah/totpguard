@@ -4,6 +4,7 @@ androidGradlePlugin = "7.4.2"
 androidCompileSdk = "34"
 androidMinSdk = "26"
 bcprovJdk15on = "1.70"
+bcprovJdk15to18 = "1.82"
 zxingCore = "3.5.1"
 zxingJavase = "3.5.1"
 commonsCodec = "1.15"
@@ -21,6 +22,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 bcprov-jdk15on = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bcprovJdk15on" }
+bcprov-jdk15to18 = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bcprovJdk15to18" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxingCore" }
 zxing-javase = { module = "com.google.zxing:javase", version.ref = "zxingJavase" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
