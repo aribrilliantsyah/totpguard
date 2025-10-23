@@ -1108,7 +1108,11 @@ class TotpManager(private val context: Context) {
         
         // Buat URI dan QR Code
         val issuer = "AplikasiSaya"
-        val uri = totpGuard.generateOtpAuthUri(secret, accountName, issuer)
+        val uri = totpGuard.generateOtpAuthUri(
+            secret = secret, 
+            accountName = accountName, 
+            issuer = issuer
+        )
         val qrCodeBase64 = totpGuard.generateQrCodeBase64(uri)
         
         // Kembalikan data untuk UI
@@ -1246,7 +1250,11 @@ class TotpManager {
         userDefaults.setObject(backupCodes.hashedCodes.toNSArray(), "hashed_backup_codes")
         
         // Generate QR Code
-        val uri = totpGuard.generateOtpAuthUri(secret, accountName, "AplikasiSaya")
+        val uri = totpGuard.generateOtpAuthUri(
+            secret = secret, 
+            accountName = accountName, 
+            issuer = "AplikasiSaya"
+        )
         val qrCodeBase64 = totpGuard.generateQrCodeBase64(uri)
         
         return Pair(qrCodeBase64, backupCodes.formattedCodes)
@@ -1503,14 +1511,51 @@ fun generateOtpAuthUri(
 **Return:**
 - `String`: URI otpauth (contoh: `otpauth://totp/MyApp:user@example.com?secret=...`)
 
-**Contoh:**
+**Catatan:**
+Method ini sudah dilengkapi dengan `@JvmOverloads`, sehingga di Java Anda bisa memanggilnya dengan beberapa cara:
+
+```java
+// Cara 1: Hanya dengan 3 parameter (menggunakan default values)
+String uri = totpGuard.generateOtpAuthUri(secret, "user@example.com", "MyApp");
+
+// Cara 2: Dengan custom algorithm
+String uri = totpGuard.generateOtpAuthUri(
+    secret, 
+    "user@example.com", 
+    "MyApp",
+    TotpAlgorithm.SHA256
+);
+
+// Cara 3: Dengan semua parameter
+String uri = totpGuard.generateOtpAuthUri(
+    secret, 
+    "user@example.com", 
+    "MyApp",
+    TotpAlgorithm.SHA1,
+    6,
+    30
+);
+```
+
+**Contoh untuk Kotlin:**
 ```kotlin
+// Dengan default values (hanya 3 parameter required)
 val uri = TotpGuard.generateOtpAuthUri(
     secret = secret,
     accountName = "user@example.com",
     issuer = "MyApp"
 )
 // Output: "otpauth://totp/MyApp:user@example.com?secret=ABC...&issuer=MyApp&algorithm=SHA1&digits=6&period=30"
+
+// Atau dengan custom algorithm dan period
+val uri2 = TotpGuard.generateOtpAuthUri(
+    secret = secret,
+    accountName = "user@example.com",
+    issuer = "MyApp",
+    algorithm = TotpAlgorithm.SHA256,
+    digits = 8,
+    period = 60
+)
 ```
 
 ---

@@ -159,7 +159,7 @@ object TotpGuard {
     }
 
     /**
-     * Generates an otpauth:// URI for TOTP setup.
+     * Generates an otpauth:// URI for use with authenticator apps.
      *
      * @param secret The Base32-encoded secret key
      * @param accountName The account name (e.g., email address)
@@ -169,6 +169,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return An otpauth:// URI
      */
+    @JvmOverloads
     fun generateOtpAuthUri(
         secret: String,
         accountName: String,
