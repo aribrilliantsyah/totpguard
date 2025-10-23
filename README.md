@@ -207,15 +207,68 @@ dependencies {
 }
 ```
 
-#### Maven
+#### Maven (pom.xml)
+
+**Untuk Development Lokal:**
+
+Jika Anda sudah publish ke Maven Local, tambahkan repository `mavenLocal` dan dependency:
 
 ```xml
-<dependency>
-  <groupId>io.github.aribrilliantsyah</groupId>
-  <artifactId>totp-guard</artifactId>
-  <version>0.0.1-beta</version>
-</dependency>
+<project>
+    <!-- ... -->
+    
+    <repositories>
+        <repository>
+            <id>mavenLocal</id>
+            <url>file://${user.home}/.m2/repository</url>
+        </repository>
+    </repositories>
+    
+    <dependencies>
+        <!-- Untuk JVM target -->
+        <dependency>
+            <groupId>io.github.aribrilliantsyah</groupId>
+            <artifactId>library-jvm</artifactId>
+            <version>0.0.1-beta</version>
+        </dependency>
+        
+        <!-- ATAU untuk Kotlin Multiplatform metadata -->
+        <dependency>
+            <groupId>io.github.aribrilliantsyah</groupId>
+            <artifactId>library</artifactId>
+            <version>0.0.1-beta</version>
+        </dependency>
+    </dependencies>
+</project>
 ```
+
+**Untuk Production (dari Maven Central):**
+
+```xml
+<project>
+    <!-- ... -->
+    
+    <repositories>
+        <repository>
+            <id>mavenCentral</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
+    
+    <dependencies>
+        <dependency>
+            <groupId>io.github.aribrilliantsyah</groupId>
+            <artifactId>totp-guard</artifactId>
+            <version>0.0.1-beta</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+**Catatan Penting untuk Maven:**
+- Untuk development lokal, gunakan `library-jvm` sebagai `artifactId`
+- Untuk production dari Maven Central, gunakan `totp-guard` sebagai `artifactId`
+- Pastikan Anda sudah menjalankan `./gradlew :library:publishToMavenLocal` untuk development lokal
 
 ## Panduan Penggunaan
 
