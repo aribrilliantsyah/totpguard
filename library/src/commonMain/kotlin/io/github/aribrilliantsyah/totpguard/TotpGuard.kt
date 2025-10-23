@@ -23,6 +23,7 @@ object TotpGuard {
      * @param length The length of the secret key in bytes (default: 32)
      * @return A Base32-encoded secret key
      */
+    @JvmOverloads
     fun generateTotpSecret(length: Int = 32): String {
         val random = ByteArray(length)
         // Fill with secure random data
@@ -40,6 +41,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return A TOTP code
      */
+    @JvmOverloads
     fun generateTotpCode(
         secret: String,
         algorithm: TotpAlgorithm = TotpAlgorithm.SHA1,
@@ -61,6 +63,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return A TotpVerificationResult indicating whether the code is valid
      */
+    @JvmOverloads
     fun verifyTotpCode(
         secret: String,
         code: String,
@@ -80,6 +83,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return The number of seconds until the code expires
      */
+    @JvmOverloads
     fun getRemainingSeconds(period: Int = 30): Int {
         val totpGenerator = TotpGenerator("dummy", period.toLong())
         return totpGenerator.getRemainingTime().toInt()
@@ -141,6 +145,7 @@ object TotpGuard {
      * @param size The size of the QR code in pixels (default: 300)
      * @return A byte array containing the PNG image
      */
+    @JvmOverloads
     fun generateQrCodePng(uri: String, size: Int = 300): ByteArray {
         val qrCodeGenerator = QrCodeGenerator()
         return qrCodeGenerator.generateQrCode(uri, size)
@@ -153,6 +158,7 @@ object TotpGuard {
      * @param size The size of the QR code in pixels (default: 300)
      * @return A Base64-encoded PNG image
      */
+    @JvmOverloads
     fun generateQrCodeBase64(uri: String, size: Int = 300): String {
         val qrCodeGenerator = QrCodeGenerator()
         return qrCodeGenerator.generateQrCodeBase64(uri, size)
@@ -202,6 +208,7 @@ object TotpGuard {
      * @param length The length of each code (default: 8)
      * @return A BackupCodesResult containing plain codes, hashed codes, and formatted codes
      */
+    @JvmOverloads
     fun generateBackupCodes(count: Int = 10, length: Int = 8): BackupCodesResult {
         val backupCodesManager = BackupCodesManager(count, length)
         val plainCodes = backupCodesManager.generateBackupCodes()
@@ -233,6 +240,7 @@ object TotpGuard {
      * @param separator The separator between groups (default: "-")
      * @return The formatted backup code
      */
+    @JvmOverloads
     fun formatBackupCode(code: String, groupSize: Int = 4, separator: String = "-"): String {
         return code.chunked(groupSize).joinToString(separator)
     }

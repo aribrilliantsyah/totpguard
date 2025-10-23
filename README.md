@@ -137,6 +137,64 @@ dependencies {
 </project>
 ```
 
+#### Langkah 4: Test Library
+
+**Contoh Kotlin:**
+
+```kotlin
+import io.github.aribrilliantsyah.totpguard.TotpGuard
+
+fun main() {
+    // Generate secret
+    val secret = TotpGuard.generateTotpSecret()
+    
+    // Generate TOTP code
+    val code = TotpGuard.generateTotpCode(secret)
+    println("TOTP Code: $code")
+    
+    // Verify code
+    val isValid = TotpGuard.verifyTotpCode(secret, code).isValid
+    println("Valid: $isValid")
+    
+    // Generate QR Code untuk authenticator app
+    val uri = TotpGuard.generateOtpAuthUri(
+        secret = secret,
+        accountName = "user@email.com",
+        issuer = "MyApp"
+    )
+    val qrBase64 = TotpGuard.generateQrCodeBase64(uri)
+    println("QR Code generated!")
+}
+```
+
+**Contoh Java:**
+
+```java
+import io.github.aribrilliantsyah.totpguard.TotpGuard;
+
+public class Main {
+    public static void main(String[] args) {
+        TotpGuard totpGuard = TotpGuard.INSTANCE;
+        
+        // Generate secret
+        String secret = totpGuard.generateTotpSecret();
+        
+        // Generate TOTP code
+        String code = totpGuard.generateTotpCode(secret);
+        System.out.println("TOTP Code: " + code);
+        
+        // Verify code
+        boolean isValid = totpGuard.verifyTotpCode(secret, code).isValid();
+        System.out.println("Valid: " + isValid);
+        
+        // Generate QR Code untuk authenticator app
+        String uri = totpGuard.generateOtpAuthUri(secret, "user@email.com", "MyApp");
+        String qrBase64 = totpGuard.generateQrCodeBase64(uri);
+        System.out.println("QR Code generated!");
+    }
+}
+```
+
 **Test menggunakan library:**
 
 ```kotlin
@@ -1342,13 +1400,40 @@ kotlin {
 
 Library TOTP-GUARD menyediakan berbagai fungsi melalui object singleton `TotpGuard`. Berikut adalah dokumentasi lengkap semua fungsi yang tersedia:
 
-### 🔐 Fungsi TOTP (Time-based One-Time Password)
+### � Catatan Penting untuk Java Developers
+
+Semua method public di library ini sudah dilengkapi dengan annotation `@JvmOverloads`. Ini berarti:
+
+✅ **Di Java**: Anda bisa memanggil method dengan parameter minimal (menggunakan default values)
+```java
+// Simple - langsung pakai!
+String secret = totpGuard.generateTotpSecret();
+String code = totpGuard.generateTotpCode(secret);
+boolean isValid = totpGuard.verifyTotpCode(secret, userCode).isValid();
+```
+
+✅ **Di Kotlin**: Named parameters dan default values bekerja seperti biasa
+```kotlin
+val secret = TotpGuard.generateTotpSecret()
+val code = TotpGuard.generateTotpCode(secret = secret)
+val isValid = TotpGuard.verifyTotpCode(secret = secret, code = userCode).isValid
+```
+
+**Keuntungan @JvmOverloads:**
+- Tidak perlu menyediakan semua parameter di Java
+- Method overload otomatis dibuat untuk kombinasi parameter
+- Kode Java menjadi lebih simple dan clean
+
+---
+
+### �🔐 Fungsi TOTP (Time-based One-Time Password)
 
 #### 1. `generateTotpSecret()`
 Menghasilkan secret key untuk TOTP yang di-encode dalam Base32.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun generateTotpSecret(length: Int = 32): String
 ```
 
@@ -1358,13 +1443,22 @@ fun generateTotpSecret(length: Int = 32): String
 **Return:**
 - `String`: Secret key yang di-encode dalam Base32
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
 val secret = TotpGuard.generateTotpSecret()
 // Output: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"
 
 val shortSecret = TotpGuard.generateTotpSecret(16)
 // Output secret yang lebih pendek
+```
+
+**Contoh Java:**
+```java
+// Dengan default length (32 bytes)
+String secret = totpGuard.generateTotpSecret();
+
+// Dengan custom length
+String shortSecret = totpGuard.generateTotpSecret(16);
 ```
 
 ---
@@ -1374,6 +1468,7 @@ Menghasilkan kode TOTP untuk waktu saat ini.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun generateTotpCode(
     secret: String,
     algorithm: TotpAlgorithm = TotpAlgorithm.SHA1,
@@ -1394,11 +1489,13 @@ fun generateTotpCode(
 **Return:**
 - `String`: Kode TOTP (contoh: "123456")
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
+// Dengan default values
 val code = TotpGuard.generateTotpCode(secret)
 // Output: "123456"
 
+// Dengan custom algorithm dan digits
 val code8digit = TotpGuard.generateTotpCode(
     secret = secret,
     algorithm = TotpAlgorithm.SHA256,
@@ -1408,6 +1505,21 @@ val code8digit = TotpGuard.generateTotpCode(
 // Output: "12345678"
 ```
 
+**Contoh Java:**
+```java
+// Simple - hanya secret (menggunakan default values)
+String code = totpGuard.generateTotpCode(secret);
+
+// Dengan custom algorithm
+String code2 = totpGuard.generateTotpCode(secret, TotpAlgorithm.SHA256);
+
+// Dengan custom algorithm dan digits
+String code3 = totpGuard.generateTotpCode(secret, TotpAlgorithm.SHA256, 8);
+
+// Full control - semua parameter
+String code4 = totpGuard.generateTotpCode(secret, TotpAlgorithm.SHA1, 6, 30);
+```
+
 ---
 
 #### 3. `verifyTotpCode()`
@@ -1415,6 +1527,7 @@ Memverifikasi kode TOTP yang dimasukkan user.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun verifyTotpCode(
     secret: String,
     code: String,
@@ -1441,8 +1554,9 @@ fun verifyTotpCode(
   - `isValid` (Boolean): Apakah kode valid
   - `timeOffset` (Int): Offset waktu jika kode valid di periode berbeda
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
+// Simple verification dengan default values
 val result = TotpGuard.verifyTotpCode(secret, userInputCode)
 if (result.isValid) {
     println("Kode valid!")
@@ -1458,6 +1572,23 @@ val strictResult = TotpGuard.verifyTotpCode(
 )
 ```
 
+**Contoh Java:**
+```java
+// Simple - hanya secret dan code (menggunakan default values)
+TotpVerificationResult result = totpGuard.verifyTotpCode(secret, userCode);
+if (result.isValid()) {
+    System.out.println("Kode valid!");
+}
+
+// Dengan custom time window
+TotpVerificationResult result2 = totpGuard.verifyTotpCode(secret, userCode, 0);
+
+// Full control
+TotpVerificationResult result3 = totpGuard.verifyTotpCode(
+    secret, userCode, 1, TotpAlgorithm.SHA1, 6, 30
+);
+```
+
 ---
 
 #### 4. `getRemainingSeconds()`
@@ -1465,6 +1596,7 @@ Mendapatkan sisa waktu sebelum kode TOTP saat ini expired.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun getRemainingSeconds(period: Int = 30): Int
 ```
 
@@ -1474,13 +1606,23 @@ fun getRemainingSeconds(period: Int = 30): Int
 **Return:**
 - `Int`: Jumlah detik tersisa (0-29 untuk period 30 detik)
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
 val remaining = TotpGuard.getRemainingSeconds()
 println("Kode akan expired dalam $remaining detik")
 
 // Untuk period custom
 val remaining60 = TotpGuard.getRemainingSeconds(60)
+```
+
+**Contoh Java:**
+```java
+// Dengan default period (30 detik)
+int remaining = totpGuard.getRemainingSeconds();
+System.out.println("Kode akan expired dalam " + remaining + " detik");
+
+// Dengan custom period
+int remaining60 = totpGuard.getRemainingSeconds(60);
 ```
 
 ---
@@ -1490,6 +1632,7 @@ Menghasilkan URI `otpauth://` untuk setup TOTP di aplikasi authenticator.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun generateOtpAuthUri(
     secret: String,
     accountName: String,
@@ -1512,14 +1655,15 @@ fun generateOtpAuthUri(
 - `String`: URI otpauth (contoh: `otpauth://totp/MyApp:user@example.com?secret=...`)
 
 **Catatan:**
-Method ini sudah dilengkapi dengan `@JvmOverloads`, sehingga di Java Anda bisa memanggilnya dengan beberapa cara:
+Method ini menggunakan `@JvmOverloads`, sehingga di Java Anda bisa memanggilnya dengan beberapa cara:
 
+**Contoh Java:**
 ```java
-// Cara 1: Hanya dengan 3 parameter (menggunakan default values)
+// Cara 1: Hanya dengan 3 parameter (menggunakan default values) - RECOMMENDED
 String uri = totpGuard.generateOtpAuthUri(secret, "user@example.com", "MyApp");
 
 // Cara 2: Dengan custom algorithm
-String uri = totpGuard.generateOtpAuthUri(
+String uri2 = totpGuard.generateOtpAuthUri(
     secret, 
     "user@example.com", 
     "MyApp",
@@ -1527,7 +1671,7 @@ String uri = totpGuard.generateOtpAuthUri(
 );
 
 // Cara 3: Dengan semua parameter
-String uri = totpGuard.generateOtpAuthUri(
+String uri3 = totpGuard.generateOtpAuthUri(
     secret, 
     "user@example.com", 
     "MyApp",
@@ -1537,7 +1681,7 @@ String uri = totpGuard.generateOtpAuthUri(
 );
 ```
 
-**Contoh untuk Kotlin:**
+**Contoh Kotlin:**
 ```kotlin
 // Dengan default values (hanya 3 parameter required)
 val uri = TotpGuard.generateOtpAuthUri(
@@ -1670,6 +1814,7 @@ Menghasilkan QR code dalam format PNG bytes.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun generateQrCodePng(uri: String, size: Int = 300): ByteArray
 ```
 
@@ -1680,12 +1825,26 @@ fun generateQrCodePng(uri: String, size: Int = 300): ByteArray
 **Return:**
 - `ByteArray`: Image PNG dalam bentuk bytes
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
 val uri = TotpGuard.generateOtpAuthUri(secret, "user@example.com", "MyApp")
 val qrBytes = TotpGuard.generateQrCodePng(uri, 400)
 // Simpan ke file atau tampilkan
 Files.write(Paths.get("qrcode.png"), qrBytes)
+```
+
+**Contoh Java:**
+```java
+String uri = totpGuard.generateOtpAuthUri(secret, "user@example.com", "MyApp");
+
+// Dengan default size (300px)
+byte[] qrBytes = totpGuard.generateQrCodePng(uri);
+
+// Dengan custom size
+byte[] qrBytes2 = totpGuard.generateQrCodePng(uri, 400);
+
+// Simpan ke file
+Files.write(Paths.get("qrcode.png"), qrBytes);
 ```
 
 ---
@@ -1695,6 +1854,7 @@ Menghasilkan QR code dalam format Base64 string.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun generateQrCodeBase64(uri: String, size: Int = 300): String
 ```
 
@@ -1705,11 +1865,23 @@ fun generateQrCodeBase64(uri: String, size: Int = 300): String
 **Return:**
 - `String`: Image PNG yang di-encode dalam Base64
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
 val qrBase64 = TotpGuard.generateQrCodeBase64(uri)
 // Kirim ke frontend untuk ditampilkan
 // <img src="data:image/png;base64,${qrBase64}" />
+```
+
+**Contoh Java:**
+```java
+// Dengan default size (300px)
+String qrBase64 = totpGuard.generateQrCodeBase64(uri);
+
+// Dengan custom size
+String qrBase64_2 = totpGuard.generateQrCodeBase64(uri, 500);
+
+// Gunakan di HTML
+String html = "<img src=\"data:image/png;base64," + qrBase64 + "\" />";
 ```
 
 ---
@@ -1721,6 +1893,7 @@ Menghasilkan kode cadangan untuk recovery.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun generateBackupCodes(count: Int = 10, length: Int = 8): BackupCodesResult
 ```
 
@@ -1734,7 +1907,7 @@ fun generateBackupCodes(count: Int = 10, length: Int = 8): BackupCodesResult
   - `hashedCodes` (List<String>): Kode yang di-hash (untuk disimpan)
   - `formattedCodes` (List<String>): Kode yang diformat untuk ditampilkan
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
 val backupCodes = TotpGuard.generateBackupCodes(10, 8)
 
@@ -1747,6 +1920,26 @@ backupCodes.formattedCodes.forEach { println(it) }
 
 // Simpan ke database
 saveToDatabase(backupCodes.hashedCodes)
+```
+
+**Contoh Java:**
+```java
+// Dengan default values (10 codes, 8 karakter)
+BackupCodesResult backupCodes = totpGuard.generateBackupCodes();
+
+// Dengan custom count
+BackupCodesResult backupCodes2 = totpGuard.generateBackupCodes(15);
+
+// Dengan custom count dan length
+BackupCodesResult backupCodes3 = totpGuard.generateBackupCodes(10, 12);
+
+// Tampilkan ke user
+for (String code : backupCodes.getFormattedCodes()) {
+    System.out.println(code);
+}
+
+// Simpan hashed codes ke database
+saveToDatabase(backupCodes.getHashedCodes());
 ```
 
 ---
@@ -1789,6 +1982,7 @@ Memformat backup code untuk display yang lebih mudah dibaca.
 
 **Signature:**
 ```kotlin
+@JvmOverloads
 fun formatBackupCode(
     code: String,
     groupSize: Int = 4,
@@ -1804,12 +1998,27 @@ fun formatBackupCode(
 **Return:**
 - `String`: Kode yang sudah diformat
 
-**Contoh:**
+**Contoh Kotlin:**
 ```kotlin
 val formatted = TotpGuard.formatBackupCode("ABCDEFGH")
 // Output: "ABCD-EFGH"
 
 val customFormat = TotpGuard.formatBackupCode("ABCDEFGH", 2, " ")
+// Output: "AB CD EF GH"
+```
+
+**Contoh Java:**
+```java
+// Dengan default values (groupSize=4, separator="-")
+String formatted = totpGuard.formatBackupCode("ABCDEFGH");
+// Output: "ABCD-EFGH"
+
+// Dengan custom group size
+String formatted2 = totpGuard.formatBackupCode("ABCDEFGH", 2);
+// Output: "AB-CD-EF-GH"
+
+// Dengan custom group size dan separator
+String formatted3 = totpGuard.formatBackupCode("ABCDEFGH", 2, " ");
 // Output: "AB CD EF GH"
 ```
 
