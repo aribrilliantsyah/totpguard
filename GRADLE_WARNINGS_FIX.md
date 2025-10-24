@@ -80,9 +80,100 @@ Affected: ZXing 3.5.1
 - [CVE-2023-51074](https://nvd.nist.gov/vuln/detail/CVE-2023-51074)
 - [ZXing Release 3.5.3](https://github.com/zxing/zxing/releases/tag/zxing-3.5.3)
 
+### 3. CVE-2023-51074 - ZXing Security Vulnerability
+
+**Vulnerability:**
+```
+CVE-2023-51074
+Severity: 5.3 (Medium)
+Type: Transitive Out-of-bounds Write
+Affected: ZXing 3.5.1
+```
+
+**Fix:**
+- **File:** `gradle/libs.versions.toml`
+- **Action:** Updated ZXing from `3.5.1` to `3.5.3`
+- **Reason:** Version 3.5.3 patches the security vulnerability
+
+**Changes:**
+```diff
+[versions]
+- zxingCore = "3.5.1"
+- zxingJavase = "3.5.1"
++ zxingCore = "3.5.3"
++ zxingJavase = "3.5.3"
+```
+
+**References:**
+- [CVE-2023-51074](https://nvd.nist.gov/vuln/detail/CVE-2023-51074)
+- [ZXing Release 3.5.3](https://github.com/zxing/zxing/releases/tag/zxing-3.5.3)
+
 ---
 
-### 4. Expect/Actual Classes Beta Warning
+### 4. Removed Unused Dependencies (CVE Prevention)
+
+**Issue:**
+- Jackson dependencies declared but not used
+- Vulnerability scanners detect CVEs in unused dependencies:
+  - CVE-2022-42004 (Jackson - Deserialization)
+  - CVE-2022-42003 (Jackson - Deserialization)
+  - CVE-2020-36518 (Jackson - Out-of-bounds Write)
+
+**Fix:**
+- **File:** `gradle/libs.versions.toml`
+- **Action:** Removed all unused dependency declarations
+- **Removed:**
+  - `jackson-databind` (2.14.2)
+  - `jackson-kotlin` (2.14.2)
+  - `commons-codec` (1.15)
+  - `jbcrypt` (0.4)
+  - `bcrypt-android` (0.10.2)
+  - `bcprov-jdk15on` (1.70)
+  - `bcprov-jdk15to18` (1.82)
+  - `android-security-crypto` (1.1.0-alpha06)
+
+**Reason:** 
+- These were declared for future Android support but not used
+- JVM uses built-in `javax.crypto` (zero external crypto dependencies)
+- Vulnerability scanners flag them even when unused
+- Cleaner dependency tree
+
+**Changes:**
+```diff
+[versions]
+kotlin = "2.2.0"
+- bcprovJdk15on = "1.70"
+- bcprovJdk15to18 = "1.82"
+zxingCore = "3.5.3"
+zxingJavase = "3.5.3"
+- commonsCodec = "1.15"
+- jbcrypt = "0.4"
+- bcryptAndroid = "0.10.2"
+- jacksonDatabind = "2.14.2"
+- jacksonKotlin = "2.14.2"
+kotlinxSerialization = "1.5.1"
+
+[libraries]
+- bcprov-jdk15on = { ... }
+- bcprov-jdk15to18 = { ... }
+- commons-codec = { ... }
+- jbcrypt = { ... }
+- jackson-databind = { ... }
+- jackson-kotlin = { ... }
+- android-security-crypto = { ... }
+- bcrypt-android = { ... }
+```
+
+**Result:**
+- ✅ Zero Jackson/FasterXML dependencies
+- ✅ Zero BouncyCastle dependencies  
+- ✅ Cleaner dependency tree
+- ✅ No CVE warnings from unused libraries
+- ✅ Smaller build size
+
+---
+
+### 5. Expect/Actual Classes Beta Warning
 
 **Warning:**
 ```
@@ -165,6 +256,10 @@ Verify the library still works correctly:
 | `kotlin.js.compiler` deprecated | ✅ Fixed | Present | Removed |
 | Hierarchy template warning | ✅ Fixed | Not disabled | Disabled |
 | CVE-2023-51074 (ZXing) | ✅ Fixed | 3.5.1 | 3.5.3 |
+| Unused dependencies | ✅ Removed | 8+ unused | 0 unused |
+| CVE-2022-42004 (Jackson) | ✅ Fixed | Declared | Removed |
+| CVE-2022-42003 (Jackson) | ✅ Fixed | Declared | Removed |
+| CVE-2020-36518 (Jackson) | ✅ Fixed | Declared | Removed |
 | Expect/actual Beta warning | ✅ Fixed | Visible | Suppressed |
 
 ---
@@ -178,6 +273,7 @@ Verify the library still works correctly:
 2. **gradle/libs.versions.toml**
    - Updated `zxingCore` from `3.5.1` to `3.5.3`
    - Updated `zxingJavase` from `3.5.1` to `3.5.3`
+   - Removed 8 unused dependency declarations (Jackson, BouncyCastle, etc.)
 
 3. **library/build.gradle.kts**
    - Added `-Xexpect-actual-classes` compiler flag

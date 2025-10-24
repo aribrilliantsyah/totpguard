@@ -3,19 +3,11 @@ kotlin = "2.2.0"
 androidGradlePlugin = "7.4.2"
 androidCompileSdk = "34"
 androidMinSdk = "26"
-bcprovJdk15on = "1.70"
-bcprovJdk15to18 = "1.82"
 zxingCore = "3.5.3"
 zxingJavase = "3.5.3"
-commonsCodec = "1.15"
-jbcrypt = "0.4"
-bcryptAndroid = "0.10.2"
-jacksonDatabind = "2.14.2"
-jacksonKotlin = "2.14.2"
 kotlinxSerialization = "1.5.1"
 kotlinxDatetime = "0.4.0"
 kotlinxCoroutines = "1.9.0"
-androidSecurityCrypto = "1.1.0-alpha06"
 vanniktech-publish = "0.25.3"
 cryptographyKotlin = "0.5.0"
 
@@ -24,16 +16,8 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
-bcprov-jdk15on = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bcprovJdk15on" }
-bcprov-jdk15to18 = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bcprovJdk15to18" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxingCore" }
 zxing-javase = { module = "com.google.zxing:javase", version.ref = "zxingJavase" }
-commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
-jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
-jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonKotlin" }
-android-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidSecurityCrypto" }
-bcrypt-android = { module = "at.favre.lib:bcrypt", version.ref = "bcryptAndroid" }
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptographyKotlin" }
 cryptography-random = { module = "dev.whyoleg.cryptography:cryptography-random", version.ref = "cryptographyKotlin" }
 cryptography-provider-jdk = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk", version.ref = "cryptographyKotlin" }

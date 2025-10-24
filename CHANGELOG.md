@@ -11,10 +11,13 @@
   - Added `-Xexpect-actual-classes` compiler flag to suppress Beta warnings
   - See [GRADLE_WARNINGS_FIX.md](GRADLE_WARNINGS_FIX.md) for details
 
-- 🔒 **Fixed CVE-2023-51074 security vulnerability**:
-  - Updated ZXing from `3.5.1` to `3.5.3`
-  - Patches Out-of-bounds Write vulnerability (Medium severity: 5.3)
-  - All dependencies now free of known CVEs
+- 🔒 **Fixed security vulnerabilities**:
+  - **CVE-2023-51074**: Updated ZXing from `3.5.1` to `3.5.3`
+  - **CVE-2022-42004**: Removed unused Jackson dependency
+  - **CVE-2022-42003**: Removed unused Jackson dependency  
+  - **CVE-2020-36518**: Removed unused Jackson dependency
+  - Removed 8+ unused dependency declarations (Jackson, BouncyCastle, etc.)
+  - Result: Zero CVE warnings, cleaner dependency tree
 
 - 📚 **Reorganized documentation** (MAJOR improvement!):
   - Split monolithic README (2,600 lines) into modular guides
