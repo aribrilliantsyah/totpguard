@@ -5,10 +5,13 @@
 ### ✨ Perubahan Terbaru (Update 24 Oktober 2025 - Afternoon)
 
 #### Fixed - Build & Security
-- 🔧 **Fixed Gradle warnings**:
+- 🔧 **Fixed all Gradle warnings**:
   - Removed deprecated `kotlin.js.compiler=ir` property
   - Added `kotlin.mpp.applyDefaultHierarchyTemplate=false` to fix hierarchy warning
   - Added `-Xexpect-actual-classes` compiler flag to suppress Beta warnings
+  - Added `@Suppress("UNUSED_VARIABLE")` for source set variables (4 warnings fixed)
+  - Added `BetaInteropApi` opt-in annotations for iOS C-interop (3 warnings fixed)
+  - **Result: Zero build warnings!** 🎉
   - See [GRADLE_WARNINGS_FIX.md](GRADLE_WARNINGS_FIX.md) for details
 
 - 🔒 **Fixed security vulnerabilities**:

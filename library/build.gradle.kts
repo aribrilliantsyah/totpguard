@@ -53,11 +53,13 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 // JVM uses standard javax.crypto - no additional dependencies needed
@@ -65,6 +67,7 @@ kotlin {
                 implementation(libs.zxing.javase)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting
         
         // Android source sets - uncomment when Android target is enabled
@@ -83,6 +86,7 @@ kotlin {
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
+        @Suppress("UNUSED_VARIABLE")
         val iosMain by creating {
             dependsOn(commonMain)
             iosX64Main.dependsOn(this)

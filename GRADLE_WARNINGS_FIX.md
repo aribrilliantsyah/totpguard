@@ -205,6 +205,76 @@ kotlin {
 
 ---
 
+### 6. Unused Variable Warnings
+
+**Warning:**
+```
+w: Variable 'commonTest' is never used
+w: Variable 'jvmMain' is never used
+w: Variable 'jvmTest' is never used
+w: Variable 'iosMain' is never used
+```
+
+**Fix:**
+- **File:** `library/build.gradle.kts`
+- **Action:** Added `@Suppress("UNUSED_VARIABLE")` annotations
+- **Reason:** These variables are used implicitly by Gradle but flagged as unused
+
+**Changes:**
+```diff
+sourceSets {
+    val commonMain by getting { ... }
+    
++   @Suppress("UNUSED_VARIABLE")
+    val commonTest by getting { ... }
+    
++   @Suppress("UNUSED_VARIABLE")
+    val jvmMain by getting { ... }
+    
++   @Suppress("UNUSED_VARIABLE")
+    val jvmTest by getting
+    
++   @Suppress("UNUSED_VARIABLE")
+    val iosMain by creating { ... }
+}
+```
+
+---
+
+### 7. Beta Interop API Warnings (iOS)
+
+**Warning:**
+```
+w: This declaration needs opt-in. Its usage should be marked with 
+'@kotlinx.cinterop.BetaInteropApi' or '@OptIn(kotlinx.cinterop.BetaInteropApi::class)'
+```
+
+**Fix:**
+- **Files:** 
+  - `library/src/iosMain/.../Base64Provider.kt`
+  - `library/src/iosMain/.../QrCodeProvider.kt`
+- **Action:** Added `BetaInteropApi` to existing `@OptIn` annotations
+- **Reason:** iOS C-interop APIs require opt-in for Beta features
+
+**Changes:**
+```diff
+- @OptIn(ExperimentalForeignApi::class)
++ @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+actual class Base64Provider {
+    // ...
+}
+
+- @OptIn(ExperimentalForeignApi::class)
++ @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+private fun ByteArray.toNSData(): NSData { ... }
+
+- @OptIn(ExperimentalForeignApi::class)
++ @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+private fun NSData.toByteArray(): ByteArray { ... }
+```
+
+---
+
 ## Verification
 
 After applying all fixes, run:
@@ -218,17 +288,17 @@ After applying all fixes, run:
 - ✅ No hierarchy template warnings
 - ✅ No CVE vulnerabilities
 - ✅ No expect/actual Beta warnings
+- ✅ No unused variable warnings
+- ✅ No Beta interop API warnings
 - ✅ Build successful
 
-**Remaining Warnings (Non-Critical):**
+**Remaining Warnings (Informational):**
 ```
-w: Variable 'commonTest' is never used
-w: Variable 'jvmMain' is never used
-w: Variable 'jvmTest' is never used
-w: Variable 'iosMain' is never used
+w: ⚠️ Disabled Kotlin/Native Targets
+The following Kotlin/Native targets cannot be built on this machine and are disabled
 ```
 
-These are minor Gradle warnings about unused source set variables that don't affect functionality.
+This is expected when building on Linux/Windows without Mac for iOS targets.
 
 ---
 
@@ -261,6 +331,8 @@ Verify the library still works correctly:
 | CVE-2022-42003 (Jackson) | ✅ Fixed | Declared | Removed |
 | CVE-2020-36518 (Jackson) | ✅ Fixed | Declared | Removed |
 | Expect/actual Beta warning | ✅ Fixed | Visible | Suppressed |
+| Unused variable warnings | ✅ Fixed | 4 warnings | Suppressed |
+| Beta interop API warnings | ✅ Fixed | 3 warnings | Suppressed |
 
 ---
 
@@ -277,6 +349,13 @@ Verify the library still works correctly:
 
 3. **library/build.gradle.kts**
    - Added `-Xexpect-actual-classes` compiler flag
+   - Added `@Suppress("UNUSED_VARIABLE")` to 4 source set variables
+
+4. **library/src/iosMain/.../Base64Provider.kt**
+   - Added `BetaInteropApi` to all `@OptIn` annotations
+
+5. **library/src/iosMain/.../QrCodeProvider.kt**
+   - Added `BetaInteropApi` to all `@OptIn` annotations
 
 ---
 

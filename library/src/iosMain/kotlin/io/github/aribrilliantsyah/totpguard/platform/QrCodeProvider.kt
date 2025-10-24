@@ -10,7 +10,7 @@ import kotlinx.cinterop.*
 /**
  * iOS implementation of QR code generation using CoreImage
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual class QrCodeProvider {
     
     actual fun generateQrCodePng(data: String, size: Int): ByteArray {
@@ -55,12 +55,12 @@ actual class QrCodeProvider {
 }
 
 // Extension functions for data conversion
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private fun String.toNSData(): NSData {
     return this.encodeToByteArray().toNSData()
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private fun ByteArray.toNSData(): NSData {
     if (this.isEmpty()) return NSData()
     return this.usePinned { pinned ->
@@ -68,7 +68,7 @@ private fun ByteArray.toNSData(): NSData {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val size = this.length.toInt()
     val bytes = ByteArray(size)

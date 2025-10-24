@@ -7,7 +7,7 @@ import kotlinx.cinterop.*
 /**
  * iOS implementation of Base64 encoding/decoding using Foundation framework
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual class Base64Provider {
     
     actual fun encode(data: ByteArray): String {
@@ -23,7 +23,7 @@ actual class Base64Provider {
 }
 
 // Extension functions for data conversion
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private fun ByteArray.toNSData(): NSData {
     if (this.isEmpty()) return NSData()
     return this.usePinned { pinned ->
@@ -31,7 +31,7 @@ private fun ByteArray.toNSData(): NSData {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val size = this.length.toInt()
     if (size == 0) return ByteArray(0)
