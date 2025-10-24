@@ -4,7 +4,14 @@
 
 ### ✨ Perubahan Terbaru (Update 24 Oktober 2025)
 
-#### Fixed
+#### Fixed - CRITICAL
+- 🚨 **Added @JvmOverloads to all public functions** (MAJOR FIX!):
+  - Sebelumnya: Java code HARUS isi semua parameter (sangat ribet!)
+  - Sekarang: Java code bisa pakai parameter minimal (simple!)
+  - Functions affected: `generateTotpSecret()`, `generateTotpCode()`, `verifyTotpCode()`, `getRemainingSeconds()`, `generateQrCodePng()`, `generateQrCodeBase64()`, `generateOtpAuthUri()`
+  - Example: `totp.generateTotpCode(secret)` sekarang WORKS! (dulu harus 4 parameters)
+  - See [JVMOVERLOADS_TEST.md](JVMOVERLOADS_TEST.md) for testing guide
+
 - 🐛 **Fixed iOS compilation errors**:
   - Type mismatches (Long → ULong) di Base64Provider dan QrCodeProvider
   - Missing `@OptIn(ExperimentalForeignApi)` annotations

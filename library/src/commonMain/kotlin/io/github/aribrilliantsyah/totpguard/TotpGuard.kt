@@ -8,6 +8,7 @@ import io.github.aribrilliantsyah.totpguard.model.TotpAlgorithm
 import io.github.aribrilliantsyah.totpguard.model.TotpVerificationResult
 import io.github.aribrilliantsyah.totpguard.model.EncryptionResult
 import io.github.aribrilliantsyah.totpguard.platform.CryptoProvider
+import kotlin.jvm.JvmOverloads
 
 /**
  * Main entry point for the TOTP-GUARD library.
@@ -22,6 +23,7 @@ object TotpGuard {
      * @param length The length of the secret key in bytes (default: 32)
      * @return A Base32-encoded secret key
      */
+    @JvmOverloads
     fun generateTotpSecret(length: Int = 32): String {
         val random = cryptoProvider.generateSecureRandom(length)
         // Encode as Base32
@@ -37,6 +39,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return A TOTP code
      */
+    @JvmOverloads
     fun generateTotpCode(
         secret: String,
         algorithm: TotpAlgorithm = TotpAlgorithm.SHA1,
@@ -58,6 +61,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return A TotpVerificationResult indicating whether the code is valid
      */
+    @JvmOverloads
     fun verifyTotpCode(
         secret: String,
         code: String,
@@ -77,6 +81,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return The number of seconds until the code expires
      */
+    @JvmOverloads
     fun getRemainingSeconds(period: Int = 30): Int {
         val totpGenerator = TotpGenerator("dummy", period.toLong())
         return totpGenerator.getRemainingTime().toInt()
@@ -136,6 +141,7 @@ object TotpGuard {
      * @param size The size of the QR code in pixels (default: 300)
      * @return A byte array containing the PNG image
      */
+    @JvmOverloads
     fun generateQrCodePng(uri: String, size: Int = 300): ByteArray {
         val qrCodeGenerator = QrCodeGenerator()
         return qrCodeGenerator.generateQrCode(uri, size)
@@ -148,6 +154,7 @@ object TotpGuard {
      * @param size The size of the QR code in pixels (default: 300)
      * @return A Base64-encoded PNG image
      */
+    @JvmOverloads
     fun generateQrCodeBase64(uri: String, size: Int = 300): String {
         val qrCodeGenerator = QrCodeGenerator()
         return qrCodeGenerator.generateQrCodeBase64(uri, size)
@@ -164,6 +171,7 @@ object TotpGuard {
      * @param period The period in seconds for which a code is valid (default: 30)
      * @return An otpauth:// URI
      */
+    @JvmOverloads
     fun generateOtpAuthUri(
         secret: String,
         accountName: String,
