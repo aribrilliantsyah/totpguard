@@ -2,7 +2,32 @@
 
 ## v0.0.1-beta (24 Oktober 2025)
 
-### ✨ Perubahan Terbaru (Update 24 Oktober 2025)
+### ✨ Perubahan Terbaru (Update 24 Oktober 2025 - Afternoon)
+
+#### Fixed - Build & Security
+- 🔧 **Fixed Gradle warnings**:
+  - Removed deprecated `kotlin.js.compiler=ir` property
+  - Added `kotlin.mpp.applyDefaultHierarchyTemplate=false` to fix hierarchy warning
+  - Added `-Xexpect-actual-classes` compiler flag to suppress Beta warnings
+  - See [GRADLE_WARNINGS_FIX.md](GRADLE_WARNINGS_FIX.md) for details
+
+- 🔒 **Fixed CVE-2023-51074 security vulnerability**:
+  - Updated ZXing from `3.5.1` to `3.5.3`
+  - Patches Out-of-bounds Write vulnerability (Medium severity: 5.3)
+  - All dependencies now free of known CVEs
+
+- 📚 **Reorganized documentation** (MAJOR improvement!):
+  - Split monolithic README (2,600 lines) into modular guides
+  - New main README.md (668 lines) - 74% reduction!
+  - Created `/docs` directory with focused guides:
+    - `INSTALLATION.md` (406 lines) - Complete setup guide
+    - `API_REFERENCE.md` (826 lines) - Full API documentation
+    - `SPRING_BOOT_GUIDE.md` (883 lines) - Framework integration
+    - `TECH_STACK.md` (648 lines) - Technical architecture
+  - Better discoverability and navigation
+  - Easier maintenance
+
+### ✨ Perubahan Sebelumnya (Update 24 Oktober 2025 - Morning)
 
 #### Fixed - CRITICAL
 - 🚨 **Added @JvmOverloads to all public functions** (MAJOR FIX!):

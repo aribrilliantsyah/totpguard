@@ -14,6 +14,11 @@ version = project.findProperty("release.version") as String? ?: "0.0.1-beta"
 kotlin {
     jvmToolchain(11) // Set Java 11 for all targets
     
+    // Suppress expect/actual classes Beta warning
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+    
     jvm {
         mavenPublication {
             artifactId = "totpguard-jvm"
