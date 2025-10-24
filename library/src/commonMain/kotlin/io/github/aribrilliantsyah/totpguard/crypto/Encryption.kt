@@ -2,7 +2,6 @@ package io.github.aribrilliantsyah.totpguard.crypto
 
 import io.github.aribrilliantsyah.totpguard.model.EncryptionResult
 import io.github.aribrilliantsyah.totpguard.platform.CryptoProvider
-import kotlinx.coroutines.runBlocking
 
 /**
  * Provides AES-256-GCM encryption and decryption
@@ -19,7 +18,7 @@ class Encryption {
      * @param key The encryption key
      * @return An EncryptionResult containing ciphertext, IV, and auth tag
      */
-    fun encrypt(plaintext: String, key: ByteArray): EncryptionResult = runBlocking {
+    fun encrypt(plaintext: String, key: ByteArray): EncryptionResult {
         val iv = cryptoProvider.generateSecureRandom(ivSize)
         val plaintextBytes = plaintext.encodeToByteArray()
         
@@ -30,7 +29,7 @@ class Encryption {
         val ciphertext = encryptedBytes.copyOfRange(0, encryptedBytes.size - tagSize)
         val authTag = encryptedBytes.copyOfRange(encryptedBytes.size - tagSize, encryptedBytes.size)
         
-        EncryptionResult(ciphertext, iv, authTag)
+        return EncryptionResult(ciphertext, iv, authTag)
     }
 
     /**
@@ -40,14 +39,14 @@ class Encryption {
      * @param key The encryption key
      * @return The decrypted plaintext
      */
-    fun decrypt(encryptedData: EncryptionResult, key: ByteArray): String = runBlocking {
+    fun decrypt(encryptedData: EncryptionResult, key: ByteArray): String {
         // Combine ciphertext and tag for decryption
         val combined = ByteArray(encryptedData.ciphertext.size + encryptedData.authTag.size)
         encryptedData.ciphertext.copyInto(combined, 0)
         encryptedData.authTag.copyInto(combined, encryptedData.ciphertext.size)
         
         val decryptedBytes = cryptoProvider.aesGcmDecrypt(combined, key, encryptedData.iv)
-        decryptedBytes.decodeToString()
+        return decryptedBytes.decodeToString()
     }
 
     /**

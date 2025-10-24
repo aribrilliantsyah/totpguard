@@ -1,8 +1,10 @@
 package io.github.aribrilliantsyah.totpguard.platform
 
 import platform.CoreImage.*
+import platform.CoreGraphics.*
 import platform.UIKit.*
 import platform.Foundation.*
+import platform.posix.memcpy
 import kotlinx.cinterop.*
 
 /**
@@ -28,9 +30,8 @@ actual class QrCodeProvider {
         val scaleX = size.toDouble() / outputImage.extent.useContents { this.size.width }
         val scaleY = size.toDouble() / outputImage.extent.useContents { this.size.height }
         
-        val scaledImage = outputImage.imageByApplyingTransform(
-            CGAffineTransformMakeScale(scaleX, scaleY)
-        )
+        val transform = CGAffineTransformMakeScale(scaleX, scaleY)
+        val scaledImage = outputImage.imageByApplyingTransform(transform)
         
         // Convert CIImage to UIImage
         val context = CIContext.contextWithOptions(null)
@@ -49,19 +50,25 @@ actual class QrCodeProvider {
     actual fun generateQrCodeBase64(data: String, size: Int): String {
         val pngBytes = generateQrCodePng(data, size)
         val nsData = pngBytes.toNSData()
-        return nsData.base64EncodedStringWithOptions(0)
+        return nsData.base64EncodedStringWithOptions(0u)
     }
 }
 
 // Extension functions for data conversion
+@OptIn(ExperimentalForeignApi::class)
 private fun String.toNSData(): NSData {
     return this.encodeToByteArray().toNSData()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun ByteArray.toNSData(): NSData {
-    return NSData.create(bytes = this.refTo(0).getPointer(MemScope()), length = this.size.toULong())
+    if (this.isEmpty()) return NSData()
+    return this.usePinned { pinned ->
+        NSData.create(bytes = pinned.addressOf(0), length = this.size.toULong())
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val size = this.length.toInt()
     val bytes = ByteArray(size)

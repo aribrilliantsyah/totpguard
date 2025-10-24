@@ -374,7 +374,6 @@ library/src/
 | **cryptography-provider-apple** | 0.5.0 | iOS | Apple crypto backend |
 | **zxing-core** | 3.5.3 | JVM | QR Code generation |
 | **zxing-javase** | 3.5.3 | JVM | QR Code image output |
-| **jbcrypt** | 0.4 | JVM | BCrypt hashing |
 
 ### How expect/actual Pattern Works
 
@@ -498,11 +497,6 @@ actual class QrCodeProvider {
 - **Pembangkitan Kode QR**
   - Pembuatan URI otpauth:// sesuai standar
   - Pembuatan kode QR sebagai gambar PNG atau string Base64
-
-- **Kode Cadangan**
-  - Pembuatan kode cadangan yang aman untuk pemulihan akun
-  - Hash kode cadangan dengan bcrypt
-  - Format kode yang mudah dibaca pengguna
 
 ## Instalasi
 

@@ -69,21 +69,6 @@ class TotpGuardTest {
     }
     
     @Test
-    fun testBackupCodes() {
-        val backupCodes = TotpGuard.generateBackupCodes(count = 5, length = 8)
-        
-        // Should have 5 codes
-        assertEquals(5, backupCodes.plainCodes.size)
-        assertEquals(5, backupCodes.hashedCodes.size)
-        assertEquals(5, backupCodes.formattedCodes.size)
-        
-        // Each code should be 8 characters
-        backupCodes.plainCodes.forEach {
-            assertEquals(8, it.length)
-        }
-    }
-    
-    @Test
     fun testEncryption() {
         val plaintext = "This is a secret message"
         val key = TotpGuard.generateEncryptionKey()

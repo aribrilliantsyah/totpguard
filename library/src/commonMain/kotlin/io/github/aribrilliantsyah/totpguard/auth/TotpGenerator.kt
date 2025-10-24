@@ -5,7 +5,6 @@ import io.github.aribrilliantsyah.totpguard.platform.CryptoProvider
 import io.github.aribrilliantsyah.totpguard.platform.TimeProvider
 import kotlin.experimental.and
 import kotlin.math.pow
-import kotlinx.coroutines.runBlocking
 
 /**
  * Implementation of the TOTP algorithm (RFC 6238)
@@ -100,8 +99,8 @@ class TotpGenerator(
         return otp.padStart(digits, '0')
     }
 
-    private fun calculateHmac(key: ByteArray, counter: ByteArray): ByteArray = runBlocking {
-        when (algorithm) {
+    private fun calculateHmac(key: ByteArray, counter: ByteArray): ByteArray {
+        return when (algorithm) {
             TotpAlgorithm.SHA1 -> cryptoProvider.hmacSha1(key, counter)
             TotpAlgorithm.SHA256 -> cryptoProvider.hmacSha256(key, counter)
             TotpAlgorithm.SHA512 -> cryptoProvider.hmacSha512(key, counter)

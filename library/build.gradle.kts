@@ -46,9 +46,6 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.serialization)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.cryptography.core)
-                implementation(libs.cryptography.random)
             }
         }
         val commonTest by getting {
@@ -58,11 +55,9 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                // JVM-specific dependencies
-                implementation(libs.cryptography.provider.jdk)
+                // JVM uses standard javax.crypto - no additional dependencies needed
                 implementation(libs.zxing.core)
                 implementation(libs.zxing.javase)
-                implementation(libs.jbcrypt)
             }
         }
         val jvmTest by getting
@@ -89,6 +84,10 @@ kotlin {
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
+                // iOS uses cryptography-kotlin with Apple Security Framework
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.cryptography.core)
+                implementation(libs.cryptography.random)
                 implementation(libs.cryptography.provider.apple)
             }
         }

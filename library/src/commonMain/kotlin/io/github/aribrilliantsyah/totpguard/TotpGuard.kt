@@ -1,20 +1,17 @@
 package io.github.aribrilliantsyah.totpguard
 
 import io.github.aribrilliantsyah.totpguard.auth.TotpGenerator
-import io.github.aribrilliantsyah.totpguard.auth.BackupCodesManager
 import io.github.aribrilliantsyah.totpguard.crypto.Encryption
 import io.github.aribrilliantsyah.totpguard.qr.QrCodeGenerator
 import io.github.aribrilliantsyah.totpguard.model.TotpData
 import io.github.aribrilliantsyah.totpguard.model.TotpAlgorithm
 import io.github.aribrilliantsyah.totpguard.model.TotpVerificationResult
 import io.github.aribrilliantsyah.totpguard.model.EncryptionResult
-import io.github.aribrilliantsyah.totpguard.model.BackupCodesResult
-import io.github.aribrilliantsyah.totpguard.model.BackupCodeVerificationResult
 import io.github.aribrilliantsyah.totpguard.platform.CryptoProvider
 
 /**
  * Main entry point for the TOTP-GUARD library.
- * Provides access to all TOTP, encryption, QR code, and backup code functionality.
+ * Provides access to TOTP, encryption, and QR code functionality.
  */
 object TotpGuard {
     private val cryptoProvider = CryptoProvider()
@@ -190,48 +187,6 @@ object TotpGuard {
                "algorithm=${algorithmName}&" +
                "digits=${digits}&" +
                "period=${period}"
-    }
-
-    /**
-     * Generates backup codes.
-     *
-     * @param count The number of backup codes to generate (default: 10)
-     * @param length The length of each code (default: 8)
-     * @return A BackupCodesResult containing plain codes, hashed codes, and formatted codes
-     */
-    fun generateBackupCodes(count: Int = 10, length: Int = 8): BackupCodesResult {
-        val backupCodesManager = BackupCodesManager(count, length)
-        val plainCodes = backupCodesManager.generateBackupCodes()
-        // In a real implementation, you would hash the codes here
-        val hashedCodes = plainCodes // Placeholder - should be hashed
-        val formattedCodes = backupCodesManager.formatCodesForDisplay(plainCodes).split("\n").map { it.removePrefix("- ") }
-        return BackupCodesResult(plainCodes, hashedCodes, formattedCodes)
-    }
-
-    /**
-     * Verifies a backup code.
-     *
-     * @param code The code to verify
-     * @param hashedCodes The list of hashed backup codes
-     * @return A BackupCodeVerificationResult indicating whether the code is valid
-     */
-    fun verifyBackupCode(code: String, hashedCodes: List<String>): BackupCodeVerificationResult {
-        val backupCodesManager = BackupCodesManager()
-        val isValid = backupCodesManager.verifyCode(code, hashedCodes)
-        val codeIndex = if (isValid) hashedCodes.indexOf(code) else null
-        return BackupCodeVerificationResult(isValid, codeIndex)
-    }
-
-    /**
-     * Formats a backup code for display.
-     *
-     * @param code The plain backup code
-     * @param groupSize The number of characters per group (default: 4)
-     * @param separator The separator between groups (default: "-")
-     * @return The formatted backup code
-     */
-    fun formatBackupCode(code: String, groupSize: Int = 4, separator: String = "-"): String {
-        return code.chunked(groupSize).joinToString(separator)
     }
 }
 
