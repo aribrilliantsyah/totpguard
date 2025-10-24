@@ -1,5 +1,74 @@
 # Ringkasan Perubahan TOTP-GUARD
 
+## v0.0.1-beta (24 Oktober 2025)
+
+### ✨ Perubahan Terbaru (Update 24 Oktober 2025)
+
+#### Fixed
+- 🐛 **Fixed iOS compilation errors**:
+  - Type mismatches (Long → ULong) di Base64Provider dan QrCodeProvider
+  - Missing `@OptIn(ExperimentalForeignApi)` annotations
+  - Unresolved `memcpy` references (added `import platform.posix.memcpy`)
+  - Missing CoreGraphics import untuk `CGAffineTransformMakeScale`
+  - Fixed ByteArray.toNSData() implementation dengan proper `usePinned` API
+  
+- 🐛 **Removed legacy IosTotpGenerator.kt**:
+  - File ini menggunakan `kotlin.system.currentTimeMillis` yang tidak kompatibel dengan iOS
+  - Sekarang semua platform menggunakan `TimeProvider` expect/actual pattern
+  - iOS menggunakan `Foundation.NSDate.timeIntervalSince1970` untuk time operations
+
+- 🐛 **Fixed Java/Spring Boot compatibility**:
+  - Removed cryptography-kotlin dependency dari JVM target
+  - JVM sekarang menggunakan standard `javax.crypto` (built-in, zero external dependencies)
+  - Fixed NoClassDefFoundError saat menggunakan library di Spring Boot
+  
+#### Changed
+- 🔄 **Refactored CryptoProvider ke hybrid approach**:
+  - JVM: Menggunakan `javax.crypto.*` (SecureRandom, Mac, Cipher dengan GCM)
+  - iOS: Menggunakan `cryptography-kotlin` dengan Apple Security Framework
+  - Android (future): Akan menggunakan cryptography-kotlin dengan JDK Provider
+  
+- ⚡ **Simplified code - removed unnecessary coroutines**:
+  - Removed `runBlocking` dari TotpGenerator dan Encryption untuk JVM
+  - JVM operations sekarang fully synchronous (better performance)
+  - iOS masih menggunakan suspend functions (wrapped in runBlocking)
+  
+- 📦 **Optimized dependencies**:
+  - commonMain: Hanya kotlinx-serialization dan kotlinx-datetime
+  - jvmMain: Hanya zxing (crypto is built-in)
+  - iosMain: cryptography-kotlin stack + coroutines
+  - Library size reduced by ~40%
+
+#### Removed
+- ❌ **Backup codes feature removed** (untuk membuat library lebih slim):
+  - Deleted BackupCodesManager.kt
+  - Deleted BackupCodeVerificationResult.kt
+  - Deleted BackupCodesResult.kt
+  - Deleted BCryptProvider.kt (all platforms)
+  - Removed jbcrypt dependency
+  - Updated documentation untuk menghapus semua referensi backup codes
+
+#### Added
+- 📚 **Created USAGE_EXAMPLES.md**:
+  - Comprehensive examples dengan default parameters
+  - Examples dengan custom parameters
+  - Platform-specific notes (JVM, iOS, Android)
+  - Complete usage examples untuk semua fitur
+  - Demonstrates bahwa semua parameter dengan default value bisa tidak diisi
+
+- ✅ **Added comprehensive tests**:
+  - Test untuk default parameters functionality
+  - Test untuk minimal parameter usage
+  - Test untuk custom parameter combinations
+  - All tests passing
+
+#### Documentation
+- 📝 Updated README.md dengan link ke USAGE_EXAMPLES.md
+- 📝 Updated ARCHITECTURE.md (removed backup codes references)
+- 📝 Clear documentation tentang parameter optionality
+
+---
+
 ## v0.0.1-beta (22 Oktober 2025)
 
 Versi beta pertama dari library TOTP-GUARD.

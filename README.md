@@ -498,6 +498,20 @@ actual class QrCodeProvider {
   - Pembuatan URI otpauth:// sesuai standar
   - Pembuatan kode QR sebagai gambar PNG atau string Base64
 
+## 📚 Dokumentasi
+
+- **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)** - Panduan lengkap penggunaan dengan berbagai contoh:
+  - ✅ Penggunaan dengan **default parameters** (parameter minimal)
+  - ✅ Penggunaan dengan **custom parameters** (full control)
+  - ✅ Contoh untuk **JVM/Spring Boot**, **Android**, dan **iOS**
+  - ✅ Complete usage examples untuk semua fitur
+
+- **[IOS_BUILD_FIX.md](IOS_BUILD_FIX.md)** - Panduan fix iOS build errors:
+  - 🔧 Cara menghapus file legacy `IosTotpGenerator.kt`
+  - ✅ Verifikasi file-file iOS platform yang benar
+  - 🧪 Testing iOS build di Mac
+  - 💡 Troubleshooting common iOS issues
+
 ## Instalasi
 
 ### 🚀 Quick Start - Penggunaan Lokal (Recommended untuk Development)

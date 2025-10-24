@@ -95,4 +95,63 @@ class TotpGuardTest {
         // Should be between 0 and 30
         assertTrue(seconds in 0..30)
     }
+    
+    @Test
+    fun testDefaultParameters() {
+        val secret = TotpGuard.generateTotpSecret()
+        
+        // Test with all default parameters
+        val code1 = TotpGuard.generateTotpCode(secret)
+        assertNotNull(code1)
+        assertEquals(6, code1.length)
+        
+        // Test verification with only required parameters
+        val result1 = TotpGuard.verifyTotpCode(secret, code1)
+        assertTrue(result1.isValid)
+        
+        // Test with custom algorithm only
+        val code2 = TotpGuard.generateTotpCode(
+            secret = secret,
+            algorithm = TotpAlgorithm.SHA256
+        )
+        assertNotNull(code2)
+        assertEquals(6, code2.length)
+        
+        // Test with custom digits only
+        val code3 = TotpGuard.generateTotpCode(
+            secret = secret,
+            digits = 8
+        )
+        assertNotNull(code3)
+        assertEquals(8, code3.length)
+        
+        // Test generateOtpAuthUri with minimal parameters
+        val uri1 = TotpGuard.generateOtpAuthUri(
+            secret = secret,
+            accountName = "user@example.com",
+            issuer = "MyApp"
+        )
+        assertTrue(uri1.contains("digits=6"))
+        assertTrue(uri1.contains("period=30"))
+        assertTrue(uri1.contains("algorithm=SHA1"))
+        
+        // Test generateQrCodePng with default size
+        val qrPng = TotpGuard.generateQrCodePng(uri1)
+        assertNotNull(qrPng)
+        assertTrue(qrPng.isNotEmpty())
+        
+        // Test generateQrCodeBase64 with default size
+        val qrBase64 = TotpGuard.generateQrCodeBase64(uri1)
+        assertNotNull(qrBase64)
+        assertTrue(qrBase64.isNotEmpty())
+        
+        // Test getRemainingSeconds with default period
+        val remaining = TotpGuard.getRemainingSeconds()
+        assertTrue(remaining in 0..30)
+        
+        // Test generateTotpSecret with default length
+        val secret2 = TotpGuard.generateTotpSecret()
+        assertNotNull(secret2)
+        assertTrue(secret2.length >= 16)
+    }
 }
