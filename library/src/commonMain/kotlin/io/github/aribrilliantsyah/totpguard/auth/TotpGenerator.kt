@@ -1,11 +1,11 @@
 package io.github.aribrilliantsyah.totpguard.auth
 
 import io.github.aribrilliantsyah.totpguard.model.TotpAlgorithm
-import java.time.Instant
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import io.github.aribrilliantsyah.totpguard.platform.CryptoProvider
+import io.github.aribrilliantsyah.totpguard.platform.TimeProvider
 import kotlin.experimental.and
-import java.util.Base64
+import kotlin.math.pow
+import kotlinx.coroutines.runBlocking
 
 /**
  * Implementation of the TOTP algorithm (RFC 6238)
@@ -21,6 +21,8 @@ class TotpGenerator(
     private val digits: Int = 6,
     private val algorithm: TotpAlgorithm = TotpAlgorithm.SHA1
 ) {
+    private val cryptoProvider = CryptoProvider()
+    private val timeProvider = TimeProvider()
 
     /**
      * Generates a TOTP code for the current time
@@ -65,11 +67,11 @@ class TotpGenerator(
      * @return Seconds until code expires
      */
     fun getRemainingTime(): Long {
-        return period - (Instant.now().epochSecond % period)
+        return period - (timeProvider.currentTimeSeconds() % period)
     }
 
     private fun getTimeCounter(): Long {
-        return Instant.now().epochSecond / period
+        return timeProvider.currentTimeSeconds() / period
     }
 
     private fun generateCode(counter: Long): String {
@@ -91,25 +93,18 @@ class TotpGenerator(
                      (hash[offset + 3].toInt() and 0xff)
         
         // Generate code with specified number of digits
-        val mod = Math.pow(10.0, digits.toDouble()).toLong()
+        val mod = 10.0.pow(digits.toDouble()).toLong()
         val otp = (binary % mod).toString()
         
         // Pad with leading zeros if necessary
         return otp.padStart(digits, '0')
     }
 
-    private fun calculateHmac(key: ByteArray, counter: ByteArray): ByteArray {
-        val mac = Mac.getInstance(getAlgorithmName())
-        val secretKey = SecretKeySpec(key, getAlgorithmName())
-        mac.init(secretKey)
-        return mac.doFinal(counter)
-    }
-
-    private fun getAlgorithmName(): String {
-        return when (algorithm) {
-            TotpAlgorithm.SHA1 -> "HmacSHA1"
-            TotpAlgorithm.SHA256 -> "HmacSHA256"
-            TotpAlgorithm.SHA512 -> "HmacSHA512"
+    private fun calculateHmac(key: ByteArray, counter: ByteArray): ByteArray = runBlocking {
+        when (algorithm) {
+            TotpAlgorithm.SHA1 -> cryptoProvider.hmacSha1(key, counter)
+            TotpAlgorithm.SHA256 -> cryptoProvider.hmacSha256(key, counter)
+            TotpAlgorithm.SHA512 -> cryptoProvider.hmacSha512(key, counter)
         }
     }
 

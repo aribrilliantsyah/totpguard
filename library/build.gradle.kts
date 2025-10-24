@@ -18,8 +18,8 @@ kotlin {
         mavenPublication {
             artifactId = "totpguard-jvm"
         }
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -36,14 +36,19 @@ kotlin {
     //     }
     // }
     
-    // iOS target - uncomment when needed
-    // ios()
+    // iOS targets - now supported with platform abstraction
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
     
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.serialization)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.cryptography.core)
+                implementation(libs.cryptography.random)
             }
         }
         val commonTest by getting {
@@ -53,17 +58,16 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(libs.bcprov.jdk15to18)
+                // JVM-specific dependencies
+                implementation(libs.cryptography.provider.jdk)
                 implementation(libs.zxing.core)
                 implementation(libs.zxing.javase)
-                implementation(libs.commons.codec)
                 implementation(libs.jbcrypt)
-                implementation(libs.jackson.databind)
-                implementation(libs.jackson.kotlin)
             }
         }
         val jvmTest by getting
-        // Android and iOS source sets - uncomment when targets are enabled
+        
+        // Android source sets - uncomment when Android target is enabled
         // val androidMain by getting {
         //     dependencies {
         //         implementation(libs.android.security.crypto)
@@ -74,8 +78,20 @@ kotlin {
         //     }
         // }
         // val androidUnitTest by getting
-        // val iosMain by getting
-        // val iosTest by getting
+        
+        // iOS source sets - enabled with platform abstraction
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+        val iosMain by creating {
+            dependsOn(commonMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+            dependencies {
+                implementation(libs.cryptography.provider.apple)
+            }
+        }
     }
 }
 

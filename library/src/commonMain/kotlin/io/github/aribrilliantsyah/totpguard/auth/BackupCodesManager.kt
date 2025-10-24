@@ -1,8 +1,7 @@
 package io.github.aribrilliantsyah.totpguard.auth
 
+import io.github.aribrilliantsyah.totpguard.platform.BCryptProvider
 import kotlin.random.Random
-import java.util.Base64
-import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Manages the generation and verification of backup codes
@@ -11,7 +10,7 @@ import org.mindrot.jbcrypt.BCrypt
  * @property codeLength The length of each backup code in characters (default: 8)
  */
 class BackupCodesManager(private val codeCount: Int = 10, private val codeLength: Int = 8) {
-
+    private val bcryptProvider = BCryptProvider()
     private val charset = ('A'..'Z') + ('0'..'9') - listOf('0', '1', 'I', 'O')
     
     /**
@@ -41,7 +40,7 @@ class BackupCodesManager(private val codeCount: Int = 10, private val codeLength
      * @return A list of hashed backup codes
      */
     fun hashCodes(plainCodes: List<String>): List<String> {
-        return plainCodes.map { BCrypt.hashpw(it, BCrypt.gensalt()) }
+        return plainCodes.map { bcryptProvider.hashPassword(it) }
     }
 
     /**
@@ -52,7 +51,7 @@ class BackupCodesManager(private val codeCount: Int = 10, private val codeLength
      * @return Whether the code is valid
      */
     fun verifyCode(code: String, hashedCodes: List<String>): Boolean {
-        return hashedCodes.any { BCrypt.checkpw(code, it) }
+        return hashedCodes.any { bcryptProvider.verifyPassword(code, it) }
     }
 
     /**
