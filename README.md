@@ -1,12 +1,455 @@
 # TOTP-GUARD
 
-TOTP-GUARD adalah library Kotlin Multiplatform (KMP) untuk autentikasi TOTP (Time-based One-Time Password), enkripsi, pembuatan kode QR, dan manajemen kode cadangan. Library ini dirancang untuk mudah digunakan dalam aplikasi Spring Boot, Android, dan iOS.
+TOTP-GUARD adalah library Kotlin Multiplatform (KMP) untuk autentikasi TOTP (Time-based One-Time Password), enkripsi, pembuatan kode QR, dan manajemen kode cadangan. Library ini dirancang untuk mudah digunakan dalam aplikasi Spring Boot, Android, dan iOS dengan implementasi cryptography yang unified menggunakan **cryptography-kotlin**.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.aribrilliantsyah/totp-guard.svg)](https://search.maven.org/artifact/io.github.aribrilliantsyah/totp-guard)
 [![Version](https://img.shields.io/badge/version-0.0.1--beta-orange)](https://github.com/aribrilliantsyah/totpguard/releases)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.2.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Java](https://img.shields.io/badge/Java-11-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html)
+
+## 🏗️ Arsitektur Multiplatform
+
+Library ini menggunakan arsitektur Kotlin Multiplatform dengan **bridge pattern** untuk menyediakan API yang konsisten di semua platform sambil memanfaatkan implementasi native platform untuk performa optimal.
+
+### Diagram Arsitektur
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        A1[Spring Boot<br/>Java/Kotlin]
+        A2[Android App<br/>Kotlin]
+        A3[iOS App<br/>Swift/Kotlin]
+    end
+
+    subgraph "TOTP-GUARD Library"
+        B1[TotpGuard<br/>Unified API]
+        
+        subgraph "Common Main"
+            C1[TotpGenerator]
+            C2[Encryption]
+            C3[BackupCodeGenerator]
+            C4[CryptoProvider<br/><i>cryptography-kotlin</i>]
+        end
+        
+        subgraph "Platform Bridge - expect/actual"
+            D1[QrCodeProvider]
+            D2[Base64Provider]
+            D3[BCryptProvider]
+            D4[TimeProvider]
+        end
+        
+        subgraph "JVM Implementation"
+            E1[ZXing QR]
+            E2[Java Base64]
+            E3[jBCrypt]
+            E4[System Time]
+        end
+        
+        subgraph "iOS Implementation"
+            F1[CoreImage QR]
+            F2[Foundation Base64]
+            F3[CommonCrypto BCrypt]
+            F4[Foundation Date]
+        end
+    end
+
+    subgraph "Cryptography Backend"
+        G1[cryptography-kotlin<br/>Unified Crypto API]
+        G2[JDK Provider<br/>javax.crypto]
+        G3[Apple Provider<br/>Security Framework]
+    end
+
+    A1 --> B1
+    A2 --> B1
+    A3 --> B1
+    
+    B1 --> C1
+    B1 --> C2
+    B1 --> C3
+    
+    C1 --> C4
+    C2 --> C4
+    C1 --> D1
+    C1 --> D2
+    C1 --> D3
+    C1 --> D4
+    C2 --> D1
+    C2 --> D2
+    C2 --> D3
+    C2 --> D4
+    C3 --> D3
+    
+    C4 --> G1
+    G1 -.JVM.-> G2
+    G1 -.iOS.-> G3
+    
+    D1 -.JVM.-> E1
+    D2 -.JVM.-> E2
+    D3 -.JVM.-> E3
+    D4 -.JVM.-> E4
+    
+    D1 -.iOS.-> F1
+    D2 -.iOS.-> F2
+    D3 -.iOS.-> F3
+    D4 -.iOS.-> F4
+
+    style B1 fill:#4CAF50,color:#fff
+    style C4 fill:#2196F3,color:#fff
+    style G1 fill:#FF9800,color:#fff
+    style A1 fill:#E8F5E9
+    style A2 fill:#E8F5E9
+    style A3 fill:#E8F5E9
+```
+
+### Penjelasan Arsitektur
+
+#### 1️⃣ **Application Layer** (Konsumen Library)
+   - **Spring Boot**: Backend server menggunakan Java atau Kotlin
+   - **Android**: Aplikasi mobile Android native
+   - **iOS**: Aplikasi mobile iOS (Swift dengan Kotlin Framework)
+
+#### 2️⃣ **Unified API** (`TotpGuard`)
+   - Single entry point untuk semua fitur
+   - API yang sama untuk semua platform
+   - Menyembunyikan kompleksitas platform-specific
+
+#### 3️⃣ **Common Main** (Business Logic)
+   - **TotpGenerator**: Logika TOTP (RFC 6238)
+   - **Encryption**: AES-256-GCM encryption/decryption
+   - **BackupCodeGenerator**: Generate dan verify backup codes
+   - **CryptoProvider**: ✨ **Unified crypto menggunakan cryptography-kotlin**
+
+#### 4️⃣ **Platform Bridge** (expect/actual pattern)
+   Komponen yang memerlukan implementasi platform-specific:
+   - **QrCodeProvider**: QR Code generation
+   - **Base64Provider**: Base64 encoding/decoding
+   - **BCryptProvider**: BCrypt hashing untuk backup codes
+   - **TimeProvider**: System time untuk TOTP
+
+#### 5️⃣ **Platform Implementations**
+   
+   **JVM Platform:**
+   - ZXing untuk QR Code
+   - Java Base64 standard library
+   - jBCrypt untuk password hashing
+   - System.currentTimeMillis()
+
+   **iOS Platform:**
+   - CoreImage untuk QR Code
+   - Foundation Base64
+   - CommonCrypto untuk BCrypt
+   - Date().timeIntervalSince1970
+
+#### 6️⃣ **Cryptography Backend** ✨ **New Unified Approach**
+   - **cryptography-kotlin**: Modern multiplatform crypto library
+   - Otomatis memilih provider sesuai platform:
+     - JVM → JDK Provider (javax.crypto)
+     - iOS → Apple Provider (Security Framework, CommonCrypto)
+   - Menyediakan API yang konsisten untuk HMAC dan AES-GCM
+
+### Keuntungan Arsitektur Bridge
+
+✅ **Write Once, Run Everywhere**: Logika bisnis ditulis sekali di commonMain  
+✅ **Platform Optimization**: Memanfaatkan native library untuk performa terbaik  
+✅ **Type Safety**: Compiler memastikan semua platform memiliki implementasi  
+✅ **Easy Maintenance**: Perubahan di common code otomatis berlaku untuk semua platform  
+✅ **Testability**: Business logic dapat ditest secara independen  
+✅ **Unified Crypto**: cryptography-kotlin menyediakan API yang sama untuk semua platform
+
+### Data Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant App as Application<br/>(Spring/Android/iOS)
+    participant API as TotpGuard API
+    participant Logic as Business Logic<br/>(commonMain)
+    participant Crypto as CryptoProvider<br/>(cryptography-kotlin)
+    participant Bridge as Platform Bridge<br/>(expect/actual)
+    participant Native as Native Implementation<br/>(JVM/iOS)
+
+    Note over App,Native: Setup TOTP Flow
+    
+    App->>API: generateTotpSecret()
+    API->>Logic: TotpGenerator.generate()
+    Logic->>Crypto: generateSecureRandom(32)
+    Crypto->>Native: CryptographyRandom.nextBytes()
+    Native-->>Crypto: Random bytes
+    Crypto-->>Logic: Base32 encoded secret
+    Logic-->>API: Secret string
+    API-->>App: "JBSWY3DPEHPK3PXP..."
+
+    App->>API: encrypt(secret, key)
+    API->>Logic: Encryption.encrypt()
+    Logic->>Crypto: aesGcmEncrypt(plaintext, key, iv)
+    Crypto->>Native: AES.GCM encryption
+    Native-->>Crypto: Ciphertext + AuthTag
+    Crypto-->>Logic: EncryptionResult
+    Logic-->>API: EncryptionResult
+    API-->>App: {ciphertext, iv, authTag}
+
+    App->>API: generateQrCodeBase64(uri)
+    API->>Logic: Use QrCodeProvider
+    Logic->>Bridge: QrCodeProvider.generate()
+    Bridge->>Native: ZXing (JVM) / CoreImage (iOS)
+    Native-->>Bridge: PNG bytes
+    Bridge-->>Logic: ByteArray
+    Logic->>Bridge: Base64Provider.encode()
+    Bridge->>Native: Base64 encode
+    Native-->>Bridge: Base64 string
+    Bridge-->>Logic: Base64 string
+    Logic-->>API: QR Base64
+    API-->>App: "iVBORw0KGgo..."
+
+    Note over App,Native: Verify TOTP Flow
+
+    App->>API: verifyTotpCode(secret, code)
+    API->>Logic: TotpGenerator.verify()
+    Logic->>Bridge: TimeProvider.currentTimeMillis()
+    Bridge->>Native: System.currentTimeMillis() / Date()
+    Native-->>Bridge: Timestamp
+    Bridge-->>Logic: Timestamp
+    Logic->>Crypto: hmacSha1(key, counter)
+    Crypto->>Native: HMAC-SHA1 calculation
+    Native-->>Crypto: HMAC bytes
+    Crypto-->>Logic: HMAC bytes
+    Logic->>Logic: Dynamic Truncation
+    Logic-->>API: TotpVerificationResult
+    API-->>App: {isValid: true, timeOffset: 0}
+```
+
+### Teknologi Stack per Platform
+
+| Komponen | JVM Platform | iOS Platform | Common |
+|----------|--------------|--------------|--------|
+| **Crypto (HMAC/AES)** | cryptography-kotlin<br/>→ JDK Provider<br/>→ javax.crypto | cryptography-kotlin<br/>→ Apple Provider<br/>→ Security Framework | ✅ Unified API |
+| **QR Code** | ZXing Core<br/>ZXing JavaSE | CoreImage<br/>CIFilter | expect/actual |
+| **Base64** | java.util.Base64 | Foundation<br/>Data.base64EncodedString() | expect/actual |
+| **BCrypt** | jBCrypt | CommonCrypto<br/>CCKeyDerivation | expect/actual |
+| **Time** | System.currentTimeMillis() | Date().timeIntervalSince1970 | expect/actual |
+| **Random** | cryptography-kotlin<br/>CryptographyRandom | cryptography-kotlin<br/>CryptographyRandom | ✅ Unified API |
+
+### Migration dari Manual Implementation ke cryptography-kotlin
+
+Sebelumnya (v0.0.0):
+```kotlin
+// Manual expect/actual untuk setiap platform
+expect class CryptoProvider {
+    fun hmacSha1(key: ByteArray, data: ByteArray): ByteArray
+    fun aesGcmEncrypt(plaintext: ByteArray, key: ByteArray, iv: ByteArray): ByteArray
+    // ... implementasi berbeda untuk JVM dan iOS
+}
+```
+
+Sekarang (v0.0.1-beta):
+```kotlin
+// Unified implementation menggunakan cryptography-kotlin
+class CryptoProvider {
+    private val provider = CryptographyProvider.Default
+    
+    suspend fun hmacSha1(key: ByteArray, data: ByteArray): ByteArray {
+        val hmac = provider.get(HMAC).keyDecoder(SHA1).decodeFromByteArray(HMAC.Key.Format.RAW, key)
+        return hmac.signatureGenerator().generateSignature(data)
+    }
+    // ... satu implementasi untuk semua platform!
+}
+```
+
+**Keuntungan Migration:**
+- ✅ Mengurangi code duplication (dari ~200 baris ke ~100 baris)
+- ✅ Maintenance lebih mudah (satu implementasi untuk semua)
+- ✅ Mengurangi risiko bug platform-specific
+- ✅ Menggunakan library yang well-tested dan aktif maintained
+- ✅ Lebih mudah menambahkan platform baru (Android, JS, Native)
+
+### Component Dependency Diagram
+
+```mermaid
+graph LR
+    subgraph "Public API"
+        TG[TotpGuard<br/>Object Singleton]
+    end
+    
+    subgraph "Core Components - commonMain"
+        TGen[TotpGenerator]
+        Enc[Encryption]
+        BGen[BackupCodeGenerator]
+    end
+    
+    subgraph "Crypto Layer"
+        CP[CryptoProvider<br/>cryptography-kotlin]
+    end
+    
+    subgraph "Platform Abstraction"
+        QR[QrCodeProvider<br/>expect/actual]
+        B64[Base64Provider<br/>expect/actual]
+        BCrypt[BCryptProvider<br/>expect/actual]
+        Time[TimeProvider<br/>expect/actual]
+    end
+    
+    subgraph "Data Models"
+        M1[TotpVerificationResult]
+        M2[EncryptionResult]
+        M3[BackupCodesResult]
+        M4[TotpAlgorithm]
+    end
+
+    TG --> TGen
+    TG --> Enc
+    TG --> BGen
+    
+    TGen --> CP
+    TGen --> Time
+    TGen --> B64
+    TGen --> M1
+    TGen --> M4
+    
+    Enc --> CP
+    Enc --> M2
+    
+    BGen --> BCrypt
+    BGen --> QR
+    BGen --> B64
+    BGen --> M3
+    
+    style TG fill:#4CAF50,color:#fff
+    style CP fill:#2196F3,color:#fff
+    style QR fill:#FF9800,color:#000
+    style B64 fill:#FF9800,color:#000
+    style BCrypt fill:#FF9800,color:#000
+    style Time fill:#FF9800,color:#000
+```
+
+### Struktur File Library
+
+```
+library/src/
+├── commonMain/kotlin/io/github/aribrilliantsyah/totpguard/
+│   ├── TotpGuard.kt                    # 🎯 Main API Entry Point
+│   ├── auth/
+│   │   └── TotpGenerator.kt            # 🔐 TOTP Logic (RFC 6238)
+│   ├── crypto/
+│   │   └── Encryption.kt               # 🔒 AES-256-GCM Encryption
+│   ├── backup/
+│   │   └── BackupCodeGenerator.kt      # 🔑 Backup Code Management
+│   ├── platform/
+│   │   ├── CryptoProvider.kt           # ✨ Unified Crypto (cryptography-kotlin)
+│   │   ├── QrCodeProvider.kt           # 📱 QR Code (expect)
+│   │   ├── Base64Provider.kt           # 📝 Base64 (expect)
+│   │   ├── BCryptProvider.kt           # 🔐 BCrypt (expect)
+│   │   └── TimeProvider.kt             # ⏰ Time (expect)
+│   ├── model/
+│   │   ├── TotpAlgorithm.kt
+│   │   ├── TotpVerificationResult.kt
+│   │   ├── EncryptionResult.kt
+│   │   ├── BackupCodesResult.kt
+│   │   └── BackupCodeVerificationResult.kt
+│   └── util/
+│       └── Base32.kt                    # Base32 encoding for TOTP secrets
+│
+├── jvmMain/kotlin/io/github/aribrilliantsyah/totpguard/platform/
+│   ├── QrCodeProvider.kt                # actual: ZXing implementation
+│   ├── Base64Provider.kt                # actual: java.util.Base64
+│   ├── BCryptProvider.kt                # actual: jBCrypt
+│   └── TimeProvider.kt                  # actual: System.currentTimeMillis()
+│
+└── iosMain/kotlin/io/github/aribrilliantsyah/totpguard/platform/
+    ├── QrCodeProvider.kt                # actual: CoreImage/CIFilter
+    ├── Base64Provider.kt                # actual: Foundation.Data
+    ├── BCryptProvider.kt                # actual: CommonCrypto
+    └── TimeProvider.kt                  # actual: Foundation.Date
+```
+
+### Dependencies Matrix
+
+| Dependency | Version | Platform | Purpose |
+|------------|---------|----------|---------|
+| **Kotlin** | 2.2.0 | All | Language runtime |
+| **kotlinx-serialization** | 1.7.3 | All | JSON serialization |
+| **kotlinx-datetime** | 0.6.1 | All | Date/time utilities |
+| **kotlinx-coroutines-core** | 1.9.0 | All | Coroutines for suspend functions |
+| **cryptography-kotlin-core** | 0.5.0 | All | ✨ Unified crypto API |
+| **cryptography-kotlin-random** | 0.5.0 | All | Secure random generation |
+| **cryptography-provider-jdk** | 0.5.0 | JVM | JDK crypto backend |
+| **cryptography-provider-apple** | 0.5.0 | iOS | Apple crypto backend |
+| **zxing-core** | 3.5.3 | JVM | QR Code generation |
+| **zxing-javase** | 3.5.3 | JVM | QR Code image output |
+| **jbcrypt** | 0.4 | JVM | BCrypt hashing |
+
+### How expect/actual Pattern Works
+
+Kotlin Multiplatform menggunakan mekanisme `expect/actual` untuk mendeklarasikan API di common code dan mengimplementasikannya secara berbeda per platform.
+
+```mermaid
+graph TD
+    A[Common Code] -->|declares| B[expect class QrCodeProvider]
+    B -->|implemented by| C[actual class QrCodeProvider<br/>JVM]
+    B -->|implemented by| D[actual class QrCodeProvider<br/>iOS]
+    
+    C -->|uses| E[ZXing Library]
+    D -->|uses| F[CoreImage Framework]
+    
+    G[Your App Code] -->|calls| A
+    A -->|compiler resolves| C
+    A -->|compiler resolves| D
+
+    style B fill:#FFC107,color:#000
+    style C fill:#4CAF50,color:#fff
+    style D fill:#2196F3,color:#fff
+```
+
+**Contoh Implementation:**
+
+**commonMain/platform/QrCodeProvider.kt:**
+```kotlin
+// Deklarasi interface yang harus diimplementasikan setiap platform
+expect class QrCodeProvider() {
+    fun generateQrCode(content: String, size: Int): ByteArray
+}
+```
+
+**jvmMain/platform/QrCodeProvider.kt:**
+```kotlin
+// Implementasi untuk JVM menggunakan ZXing
+actual class QrCodeProvider {
+    actual fun generateQrCode(content: String, size: Int): ByteArray {
+        val writer = QRCodeWriter()
+        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size)
+        val bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix)
+        
+        val outputStream = ByteArrayOutputStream()
+        ImageIO.write(bufferedImage, "PNG", outputStream)
+        return outputStream.toByteArray()
+    }
+}
+```
+
+**iosMain/platform/QrCodeProvider.kt:**
+```kotlin
+// Implementasi untuk iOS menggunakan CoreImage
+actual class QrCodeProvider {
+    actual fun generateQrCode(content: String, size: Int): ByteArray {
+        val data = content.encodeToByteArray()
+        val filter = CIFilter.filterWithName("CIQRCodeGenerator")!!
+        filter.setValue(data.toNSData(), "inputMessage")
+        
+        val outputImage = filter.outputImage!!
+        val context = CIContext()
+        val cgImage = context.createCGImage(outputImage, outputImage.extent)!!
+        
+        val uiImage = UIImage.imageWithCGImage(cgImage)
+        return UIImagePNGRepresentation(uiImage)?.toByteArray() ?: byteArrayOf()
+    }
+}
+```
+
+**Keuntungan Pattern Ini:**
+- ✅ Common code tidak perlu tahu detail implementasi platform
+- ✅ Setiap platform bisa menggunakan library native yang optimal
+- ✅ Compiler memastikan semua platform memiliki implementasi
+- ✅ Type-safe: kesalahan terdeteksi saat compile time
+
+---
 
 ## 📑 Daftar Isi
 
