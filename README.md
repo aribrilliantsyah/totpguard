@@ -893,15 +893,8 @@ public class TotpService {
         // 1. Dekripsi secret
         String secret = totpGuard.decrypt(encryptedSecret, encryptionKey);
         
-        // 2. Verifikasi kode
-        TotpVerificationResult result = totpGuard.verifyTotpCode(
-            secret, 
-            userCode, 
-            1,  // time window
-            TotpAlgorithm.SHA1,
-            6,   // digits
-            30   // period
-        );
+        // 2. Verifikasi kode - cukup 2 parameter, sisanya pakai default!
+        TotpVerificationResult result = totpGuard.verifyTotpCode(secret, userCode);
         
         return result.isValid();
     }
@@ -1133,15 +1126,8 @@ class TotpService(
         // 1. Dekripsi secret
         val secret = totpGuard.decrypt(encrypted, encryptionKey)
         
-        // 2. Verifikasi kode
-        val result = totpGuard.verifyTotpCode(
-            secret = secret, 
-            code = userCode,
-            timeWindow = 1,
-            algorithm = TotpAlgorithm.SHA1,
-            digits = 6,
-            period = 30
-        )
+        // 2. Verifikasi kode - pakai default parameters!
+        val result = totpGuard.verifyTotpCode(secret, userCode)
         
         return result.isValid
     }
@@ -1282,13 +1268,8 @@ public class TotpExample {
         // Dekripsi secret
         String secret = totpGuard.decrypt(encrypted, encryptionKey);
         
-        // Generate kode TOTP saat ini
-        String code = totpGuard.generateTotpCode(
-            secret,
-            TotpAlgorithm.SHA1,
-            6,
-            30
-        );
+        // Generate kode TOTP saat ini - SIMPLE! 1 parameter saja
+        String code = totpGuard.generateTotpCode(secret);
         
         int remainingSeconds = totpGuard.getRemainingSeconds();
         
@@ -1313,15 +1294,8 @@ public class TotpExample {
         // Dekripsi secret
         String secret = totpGuard.decrypt(encrypted, encryptionKey);
         
-        // Verifikasi kode
-        TotpVerificationResult result = totpGuard.verifyTotpCode(
-            secret,
-            userCode,
-            1,  // time window tolerance
-            TotpAlgorithm.SHA1,
-            6,
-            30
-        );
+        // Verifikasi kode - SIMPLE! Pakai 2 parameter saja
+        TotpVerificationResult result = totpGuard.verifyTotpCode(secret, userCode);
         
         if (result.isValid()) {
             System.out.println("\n✓ Kode TOTP VALID!");
